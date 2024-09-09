@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "67482114456",
+    "project_id": "liveticketbyjoyia-244a9",
+    "storage_bucket": "liveticketbyjoyia-244a9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67482114456:android:406819b1c00e63b163f3ed",
+        "android_client_info": {
+          "package_name": "com.Abid.LiveTranspot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4DSu46BePyTpYPF8EpsYma7PpdFpboOk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Driver/Direcation_Map.dart';
+import 'package:flutter_application_1/Driver/Uber_map.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'dart:math' as math;
 
 class MaoScreen extends StatefulWidget {
   const MaoScreen({super.key});
@@ -28,6 +31,8 @@ class _MapScreenState extends State<MapScreen> {
   LocationData? _currentLocation;
   final Location _location = Location();
   Set<Marker> _markers = {};
+  LatLng? _origin;
+  LatLng? _destination;
   LatLng _initialPosition = LatLng(37.7749, -122.4194); // Default location
   double _currentZoom = 14.0; // Initialize the zoom level
 
@@ -43,7 +48,6 @@ class _MapScreenState extends State<MapScreen> {
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
 
-    // Check if location service is enabled
     _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await _location.requestService();
@@ -52,7 +56,6 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
 
-    // Check for location permission
     _permissionGranted = await _location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await _location.requestPermission();
@@ -110,16 +113,59 @@ class _MapScreenState extends State<MapScreen> {
 
   // Add a marker at the tapped location (destination)
   void _onMapTapped(LatLng position) {
-    setState(() {
-      _markers.add(
-        Marker(
-          markerId: MarkerId('destination'),
-          position: position,
-          infoWindow: InfoWindow(title: 'Destination'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        ),
-      );
-    });
+    if (_origin == null) {
+      setState(() {
+        _origin = position;
+        _markers.add(
+          Marker(
+            markerId: MarkerId('origin'),
+            position: _origin!,
+            infoWindow: InfoWindow(title: 'Origin'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+          ),
+        );
+      });
+    } else if (_destination == null) {
+      setState(() {
+        _destination = position;
+        _markers.add(
+          Marker(
+            markerId: MarkerId('destination'),
+            position: _destination!,
+            infoWindow: InfoWindow(title: 'Destination'),
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          ),
+        );
+      });
+    }
+  }
+
+  // Calculate the midpoint between the origin and destination
+  LatLng _calculateMidpoint(LatLng point1, LatLng point2) {
+    return LatLng(
+      (point1.latitude + point2.latitude) / 2,
+      (point1.longitude + point2.longitude) / 2,
+    );
+  }
+
+  // Place marker at the midpoint
+  void _placeMidpointMarker() {
+    if (_origin != null && _destination != null) {
+      LatLng midpoint = _calculateMidpoint(_origin!, _destination!);
+      setState(() {
+        _markers.add(
+          Marker(
+            markerId: MarkerId('midpoint'),
+            position: midpoint,
+            infoWindow: InfoWindow(title: 'Midpoint'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueViolet),
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -136,28 +182,9 @@ class _MapScreenState extends State<MapScreen> {
             markers: _markers,
             onMapCreated: (GoogleMapController controller) {
               _controller = controller;
-              _location.onLocationChanged.listen((LocationData location) {
-                _controller?.animateCamera(
-                  CameraUpdate.newCameraPosition(
-                    CameraPosition(
-                      target: LatLng(location.latitude!, location.longitude!),
-                      zoom: _currentZoom,
-                    ),
-                  ),
-                );
-                setState(() {
-                  _markers.add(
-                    Marker(
-                      markerId: MarkerId('currentLocation'),
-                      position: LatLng(location.latitude!, location.longitude!),
-                      infoWindow: InfoWindow(title: 'You are here'),
-                    ),
-                  );
-                });
-              });
             },
             myLocationEnabled: true,
-            myLocationButtonEnabled: false, // Disable default location button
+            myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             onTap:
                 _onMapTapped, // Add a destination marker when the map is tapped
@@ -167,6 +194,18 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 100,
             child: Column(
               children: [
+                FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Uber_map(),
+                        ));
+                  },
+                  tooltip: 'Zoom In',
+                  mini: true,
+                  child: Icon(Icons.zoom_in),
+                ),
                 FloatingActionButton(
                   onPressed: _zoomIn,
                   tooltip: 'Zoom In',
@@ -185,6 +224,12 @@ class _MapScreenState extends State<MapScreen> {
                   onPressed: _goToCurrentLocation,
                   tooltip: 'Go to Current Location',
                   child: Icon(Icons.my_location),
+                ),
+                SizedBox(height: 20),
+                FloatingActionButton(
+                  onPressed: _placeMidpointMarker,
+                  tooltip: 'Place Midpoint Marker',
+                  child: Icon(Icons.place),
                 ),
               ],
             ),
