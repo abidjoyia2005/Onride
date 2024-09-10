@@ -199,7 +199,7 @@ class _MapScreenState extends State<MapScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Uber_map(),
+                          builder: (context) => UberMap(),
                         ));
                   },
                   tooltip: 'Zoom In',

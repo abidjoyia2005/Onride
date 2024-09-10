@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_application_1/Ini_setup/Splash_Screen.dart';
+import 'package:logging/logging.dart';
 
 void main() async {
+  Logger.root.level = Level.WARNING; // Set logging level to WARNING or higher
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
@@ -35,7 +41,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Vichale_cHOSE(),
+      home: SplashScreen(),
     );
   }
 }
