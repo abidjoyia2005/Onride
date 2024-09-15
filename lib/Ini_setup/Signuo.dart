@@ -1,12 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Ini_setup/Choose_Screen.dart';
+import 'package:flutter_application_1/Ini_setup/Login_Screen.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
+import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
   State createState() {
     return _SignupScreen();
   }
+}
+
+void CreateDocumentFirebase(
+  String User_id,
+  String User_name,
+) async {
+  print("User name of 0 count:");
+  CollectionReference chatCollection =
+      FirebaseFirestore.instance.collection('User_Data');
+  String MakeId = '$User_name $User_id';
+
+  await chatCollection
+      .doc(MakeId)
+      .set({
+        'User_Name': User_name,
+        // 'FCMToken': Token,
+        'CompleteProfile': false,
+      })
+      .then((value) => () {
+            print("Username Added");
+          })
+      .catchError((error) => print("Failed to add user message count: $error"));
 }
 
 class _SignupScreen extends State<SignupScreen> {
@@ -16,6 +45,31 @@ class _SignupScreen extends State<SignupScreen> {
   TextEditingController _confirmPasswordController = TextEditingController();
   AutovalidateMode _validate = AutovalidateMode.disabled;
   GlobalKey<FormState> _key = GlobalKey();
+  final AuthService _authService = AuthService();
+  var FirebaseToken;
+  void _getToken() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // Request permission if needed
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? token = await messaging.getToken(); // Get the token
+      setState(() {
+        FirebaseToken = token;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getToken();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +220,30 @@ class _SignupScreen extends State<SignupScreen> {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                 ),
-                onPressed: () => _signup(),
+                onPressed: () async {
+                  var Res = await _authService.signUpWithEmail(
+                      _emailController.text, _passwordController.text, context);
+                  print('Response is :$Res');
+
+                  setState(() {});
+                  if (Res != "null") {
+                    User_Id = Res;
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    prefs.setBool("userLogIn", true);
+                    prefs.setString("UserId", User_Id);
+                    prefs.setString("User_Name", _nameController.text);
+                    CreateDocumentFirebase(User_Id, _nameController.text);
+                    User_Name = _nameController.text;
+
+                    setState(() {});
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => GifWithBlur()),
+                    );
+                  }
+                },
                 child: Text(
                   'Sign Up',
                   style: TextStyle(
@@ -177,10 +254,30 @@ class _SignupScreen extends State<SignupScreen> {
                 ),
               ),
             ),
+            SizedBox(
+              height: 20,
+            ),
+
+            Center(
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginScreen(),
+                      ));
+                },
+                child: Text(
+                  'I have a Acount?',
+                  style: TextStyle(
+                      color: Colors.lightBlue, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
 
             /// OR divider
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(20.0),
               child: Center(
                 child: Text(
                   'OR',
@@ -195,13 +292,19 @@ class _SignupScreen extends State<SignupScreen> {
               child: SignInButton(
                 Buttons.Google, // Use the pre-built Google button
                 text: "Continue with Google",
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SignupScreen(),
-                    ),
-                  );
+                onPressed: () async {
+                  User? user = await _authService.signInWithGoogle();
+                  if (user != null) {
+                    print("Google Sign-In Successful. User ID: ${user.uid}");
+                  } else {
+                    print("Google Sign-In Cancelled or Failed");
+                  }
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => SignupScreen(),
+                  //   ),
+                  // );
                 },
               ),
             ),

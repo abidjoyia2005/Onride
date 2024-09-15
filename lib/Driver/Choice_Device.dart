@@ -69,6 +69,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // Reduced crossAxisCount to prevent overflow
                 crossAxisSpacing: 10,
+
                 mainAxisSpacing: 10,
               ),
               itemCount: vehicles.length,
@@ -85,7 +86,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                         ));
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
                     child: Card(
                       elevation: 4,
                       child: Column(
@@ -113,6 +114,29 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                                 color: Colors.grey,
                               ),
                               SizedBox(width: 5),
+                              Container(
+                                width: 10,
+                                height: 10,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors
+                                        .deepOrangeAccent, // Primary color for the button
+                                    padding: EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                  ),
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Driver',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white, // Text color white
+                                    ),
+                                  ),
+                                ),
+                              ),
                               Text(
                                 '${vehicles[index]['capacity']}',
                                 style: TextStyle(

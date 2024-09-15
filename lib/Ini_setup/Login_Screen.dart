@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/Ini_setup/Choose_Screen.dart';
+import 'package:flutter_application_1/Ini_setup/Forgot_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Signuo.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -101,7 +105,11 @@ class _LoginScreen extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                   onTap: () {
-                    // Navigate to reset password screen
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ResetPasswordScreen(),
+                        ));
                   },
                   child: Text(
                     'Forgot password?',
@@ -125,7 +133,25 @@ class _LoginScreen extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                 ),
-                onPressed: () => _login(),
+                onPressed: () async {
+                  AuthService authService = AuthService();
+
+                  var res = await authService.signInWithEmail(
+                      _emailController.text, _passwordController.text);
+
+                  if (res != "null") {
+                    User_Id = res;
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    prefs.setBool("userLogIn", true);
+                    prefs.setString("UserId", User_Id);
+                    setState(() {});
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => GifWithBlur()),
+                    );
+                  }
+                },
                 child: Text(
                   'Log In',
                   style: TextStyle(
@@ -133,6 +159,25 @@ class _LoginScreen extends State<LoginScreen> {
                     fontWeight: FontWeight.bold,
                     color: Colors.white, // Text color white
                   ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Center(
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SignupScreen(),
+                      ));
+                },
+                child: Text(
+                  "I don't have Acount?",
+                  style: TextStyle(
+                      color: Colors.lightBlue, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -155,14 +200,7 @@ class _LoginScreen extends State<LoginScreen> {
               child: SignInButton(
                 Buttons.Google, // Use the pre-built Google button
                 text: "Continue with Google",
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SignupScreen(),
-                    ),
-                  );
-                },
+                onPressed: () {},
               ),
             ),
             SizedBox(
