@@ -5,6 +5,7 @@ import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
 import 'package:flutter_application_1/Ini_setup/Login_Screen.dart';
 import 'package:flutter_application_1/Ini_setup/Onbording.dart';
+import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     User_Id = prefs.getString("UserId");
     User_Name = prefs.getString("User_Name");
     User_Profile_Picture = prefs.getString("Profile_Picture");
+    Has_Driver_Acount = prefs.getBool("Has_Driver_Acount") ?? false;
 
     print("Username :$User_Name, user id :$User_Id");
   }

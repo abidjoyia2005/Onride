@@ -1,10 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 var User_Id;
 var User_Name;
 var User_Profile_Picture;
+var Has_Driver_Acount;
+var Has_From_To;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -117,6 +120,8 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
   }
 
   // Send OTP to phone

@@ -23,14 +23,15 @@ void CreateDocumentFirebase(
   print("User name of 0 count:");
   CollectionReference chatCollection =
       FirebaseFirestore.instance.collection('User_Data');
-  String MakeId = '$User_name $User_id';
+  // String MakeId = '$User_name $User_id';
 
   await chatCollection
-      .doc(MakeId)
+      .doc(User_id)
       .set({
         'User_Name': User_name,
         // 'FCMToken': Token,
         'CompleteProfile': false,
+        'Driver_Acount': false
       })
       .then((value) => () {
             print("Username Added");

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Ini_setup/Choose_Screen.dart';
@@ -18,6 +19,35 @@ class _LoginScreen extends State<LoginScreen> {
   TextEditingController _passwordController = TextEditingController();
   AutovalidateMode _validate = AutovalidateMode.disabled;
   GlobalKey<FormState> _key = GlobalKey();
+
+  void GetDataForLogin(String User_id) async {
+    CollectionReference chatCollection =
+        FirebaseFirestore.instance.collection('User_Data');
+
+    try {
+      // Retrieve the document for the given User_id
+      DocumentSnapshot documentSnapshot =
+          await chatCollection.doc(User_id).get();
+
+      if (documentSnapshot.exists) {
+        // Extract the 'name' field from the document
+        var data = documentSnapshot.data() as Map<String, dynamic>;
+        String userName = data['User_Name'] ?? 'No Name';
+        User_Name = userName;
+        Has_Driver_Acount = data['Driver_Acount'] ?? false;
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString("User_Name", userName);
+        prefs.setBool("Has_Driver_Acount", Has_Driver_Acount);
+        setState(() {});
+
+        print("Data Download for login: User Name is $userName");
+      } else {
+        print("No such document found for User ID: $User_id");
+      }
+    } catch (error) {
+      print("Failed to retrieve user data: $error");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +175,8 @@ class _LoginScreen extends State<LoginScreen> {
                         await SharedPreferences.getInstance();
                     prefs.setBool("userLogIn", true);
                     prefs.setString("UserId", User_Id);
+                    GetDataForLogin(User_Id);
+
                     setState(() {});
                     Navigator.pushReplacement(
                       context,

@@ -1,11 +1,29 @@
 import 'package:blur/blur.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GifWithBlur extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    void CreateDocumentFirebase() async {
+      print("User name of 0 count:");
+      CollectionReference chatCollection =
+          FirebaseFirestore.instance.collection('User_Data');
+
+      await chatCollection
+          .doc(User_Id)
+          .set({'Driver_Acount': true})
+          .then((value) => () {
+                print("Username Added");
+              })
+          .catchError(
+              (error) => print("Failed to add user message count: $error"));
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -36,7 +54,11 @@ class GifWithBlur extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  CreateDocumentFirebase();
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.setBool("Has_Driver_Acount", true);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => UberMap()),
@@ -67,7 +89,10 @@ class GifWithBlur extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.setBool("Has_Driver_Acount", false);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => UberMap()),
