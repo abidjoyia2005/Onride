@@ -474,7 +474,7 @@ class _DriverRidesState extends State<DriverRides> {
                     ? userDoc['image']
                     : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
                 userDoc['username'],
-                "hello",
+                userDoc['description'],
                 userDoc['latitude'],
                 userDoc['longitude']);
           });
@@ -965,7 +965,7 @@ class _SelectedFromToState extends State<SelectedFromTo> {
                 child: Text(
                   widget.from.toString(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                     fontFamily: "Poppinssb",
                   ),
@@ -1006,7 +1006,7 @@ class _SelectedFromToState extends State<SelectedFromTo> {
                 child: Text(
                   widget.to.toString(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                     fontFamily: "Poppinssb",
                   ),

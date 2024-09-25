@@ -144,6 +144,9 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                       Vicale_Type = selectedVehicle;
                     });
                     prefs.setString("Vicale_Type", Vicale_Type);
+                    User_Profile_Picture = Vicale_Type;
+                    prefs.setString("Profile_Picture", Vicale_Type);
+                    setState(() {});
                     setState(() {});
 
                     CreateDocumentFirebase(selectedVehicle);

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -432,9 +433,17 @@ class _UberMapState extends State<UberMap> {
 
   // Method to get grid cell ID based on latitude and longitude
   String getGridCell(double latitude, double longitude) {
-    double cellSize = 8.0;
-    int latIndex = (latitude / cellSize).floor();
-    int lngIndex = (longitude / cellSize).floor();
+    // 8 km in degrees for latitude
+    double latCellSize = 8.0 / 111.32; // ~ 0.072 degrees
+
+    // 8 km in degrees for longitude, adjusted by latitude
+    double lngCellSize = 8.0 / (111.32 * cos(latitude * pi / 180));
+
+    // Calculate the indices for latitude and longitude grid
+    int latIndex = (latitude / latCellSize).floor();
+    int lngIndex = (longitude / lngCellSize).floor();
+
+    // Return the grid cell identifier
     return 'grid_${latIndex}_${lngIndex}';
   }
 

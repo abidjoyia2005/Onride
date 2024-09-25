@@ -111,14 +111,18 @@ class RideWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.asset(
-                "Assets/Vicale_images/hatchback.png",
-                height: 60,
-                width: 60,
-              ),
+            CircleAvatar(
+              child: Image.network(
+                  "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648"),
             ),
+            // Padding(
+            //   padding: const EdgeInsets.all(8.0),
+            //   child: Image.asset(
+            //     "Assets/Vicale_images/hatchback.png",
+            //     height: 60,
+            //     width: 60,
+            //   ),
+            // ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

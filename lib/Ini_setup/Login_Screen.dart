@@ -33,10 +33,12 @@ class _LoginScreen extends State<LoginScreen> {
       if (documentSnapshot.exists) {
         // Extract the 'name' field from the document
         var data = documentSnapshot.data() as Map<String, dynamic>;
+        print("login user data :$data");
         String userName = data['User_Name'] ?? 'No Name';
         User_Name = userName;
         Has_Driver_Acount = data['Driver_Acount'] ?? false;
-        Vicale_Type = data['Vicale_Type'] ?? "null";
+
+        Vicale_Type = data['Vicale_Type'] ?? null;
         Has_From_To = data['Has_From_To'] ?? false;
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("User_Name", userName);

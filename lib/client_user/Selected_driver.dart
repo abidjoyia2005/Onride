@@ -38,13 +38,13 @@ class _WhichLocationState extends State<WhichLocation> {
 
   DateTime? _selectedDate;
 
-  // Function to pick a date
+// Function to pick a date
   Future<void> _pickDateTime(BuildContext context) async {
     // Show the date picker
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now(), // Prevent past dates
       lastDate: DateTime(2100),
     );
 
@@ -65,9 +65,17 @@ class _WhichLocationState extends State<WhichLocation> {
           pickedTime.minute,
         );
 
-        setState(() {
-          _selectedDate = fullDateTime;
-        });
+        // Check if the selected date and time is in the past
+        if (fullDateTime.isBefore(DateTime.now())) {
+          // Show a message or handle the invalid selection
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Cannot select a past date or time')),
+          );
+        } else {
+          setState(() {
+            _selectedDate = fullDateTime;
+          });
+        }
       }
     }
   }
@@ -451,8 +459,8 @@ class _WhichLocationState extends State<WhichLocation> {
                             print("End Place: $endPlace");
                             print("Selected Date: ${selectedDate.toString()}");
                             CreateDocumentFirebase(
-                                _endPlaceController.text,
-                                _startPlaceController.text,
+                                _endPlaceController.text.trim().toLowerCase(),
+                                _startPlaceController.text.trim().toLowerCase(),
                                 User_Name,
                                 ContactNo.text,
                                 Des.text,
@@ -467,6 +475,8 @@ class _WhichLocationState extends State<WhichLocation> {
                             );
                             prefs.setString("From", _startPlaceController.text);
                             Has_From_To = true;
+                            To = _endPlaceController.text;
+                            From = _startPlaceController.text;
                             setState(() {});
 
                             Navigator.pushReplacement(
