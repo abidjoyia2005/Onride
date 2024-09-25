@@ -8,6 +8,21 @@ var User_Name;
 var User_Profile_Picture;
 var Has_Driver_Acount;
 var Has_From_To;
+var To;
+var From;
+var Vicale_Type;
+
+var _textH1 = TextStyle(
+    fontFamily: "Sofia",
+    fontWeight: FontWeight.w600,
+    fontSize: 23.0,
+    color: Colors.black);
+
+var _textH2 = TextStyle(
+    fontFamily: "Sofia",
+    fontWeight: FontWeight.w200,
+    fontSize: 16.0,
+    color: Colors.black);
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -103,17 +118,47 @@ class AuthService {
   }
 
   // Sign in with email and password and get UID
-  Future<String?> signInWithEmail(String email, String password) async {
+
+  Future<String?> signInWithEmail(
+      String email, String password, BuildContext context) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      UserCredential result =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       User? user = result.user;
       return user?.uid; // Return the UID of the signed-in user
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The email address is not valid.';
+      } else {
+        errorMessage = 'An unknown error occurred. Please try again.';
+      }
+
+      // Show a Snackbar with the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return null;
     } catch (e) {
-      print(e.toString());
-      return "null";
+      // Catch any other errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return null;
     }
   }
 

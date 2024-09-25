@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -19,7 +20,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class WhichLocation extends StatefulWidget {
-  const WhichLocation({super.key});
+  var van;
+  WhichLocation({super.key, this.van});
 
   @override
   State<WhichLocation> createState() => _WhichLocationState();
@@ -37,7 +39,8 @@ class _WhichLocationState extends State<WhichLocation> {
   DateTime? _selectedDate;
 
   // Function to pick a date
-  Future<void> _pickDate(BuildContext context) async {
+  Future<void> _pickDateTime(BuildContext context) async {
+    // Show the date picker
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -46,18 +49,35 @@ class _WhichLocationState extends State<WhichLocation> {
     );
 
     if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
+      // Show the time picker after a date is selected
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        // Combine the date and time into a DateTime object
+        final DateTime fullDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        setState(() {
+          _selectedDate = fullDateTime;
+        });
+      }
     }
   }
 
   // Function to display selected date
-  String _getFormattedDate() {
+  String _getFormattedDateTime() {
     if (_selectedDate != null) {
-      return DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      return DateFormat('MM/dd/yyyy hh:mm a').format(_selectedDate!);
     }
-    return 'Select Date';
+    return 'Select Date & Time';
   }
 
   File? _image;
@@ -159,7 +179,7 @@ class _WhichLocationState extends State<WhichLocation> {
       TaskSnapshot taskSnapshot = await uploadTask;
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-      User_Profile_Picture = downloadUrl;
+      // User_Profile_Picture = downloadUrl;
       prefs.setString("Profile_Picture", downloadUrl);
       setState(() {
         Upload_Image_Link = downloadUrl;
@@ -196,7 +216,25 @@ class _WhichLocationState extends State<WhichLocation> {
     }
   }
 
-  void CreateDocumentFirebase(String to, String from, String name, String Pic,
+  void CreateOnList() async {
+    print("User name of 0 count:");
+    CollectionReference chatCollection =
+        FirebaseFirestore.instance.collection('User_Data');
+    // String MakeId = '$User_name $User_id';
+
+    await chatCollection
+        .doc(User_Id)
+        .update({
+          'hasPost': true,
+        })
+        .then((value) => () {
+              print("Username Added");
+            })
+        .catchError(
+            (error) => print("Failed to add user message count: $error"));
+  }
+
+  void CreateDocumentFirebase(String to, String from, String name,
       String ContactNo, String Description, String time) async {
     print("User name of 0 count:");
     CollectionReference chatCollection =
@@ -212,11 +250,11 @@ class _WhichLocationState extends State<WhichLocation> {
           'to': to,
           'from': from,
           'contactNo': ContactNo,
-          'image': Pic,
           'description': Description,
           'Time': time
-        })
+        }, SetOptions(merge: true))
         .then((value) => () {
+              CreateOnList();
               print("Username Added");
             })
         .catchError(
@@ -232,35 +270,37 @@ class _WhichLocationState extends State<WhichLocation> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Center(
-              child: isLoading
-                  ? CircularProgressIndicator() // Show loading indicator when uploading
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _image != null
-                            ? Container(
-                                height: 200,
-                                width: 200,
-                                child: Image.file(
-                                  _image!, // The file image
-                                ),
-                              )
-                            : InkWell(
-                                onTap: _pickImage,
-                                child: Container(
-                                  height: 200,
-                                  width: 200,
-                                  child: Image.asset(
-                                    "Assets/Images/add_img.png", // Ensure this image exists in your assets folder
-                                    // fit: BoxFit
-                                    //     .cover, // Optional: fit the image properly within the container
-                                  ),
-                                ),
-                              ),
-                      ],
-                    ),
-            ),
+            // Center(
+            //   child: isLoading
+            //       ? CircularProgressIndicator() // Show loading indicator when uploading
+            //       : Column(
+            //           mainAxisAlignment: MainAxisAlignment.center,
+            //           children: [
+            //             _image != null
+            //                 ? Container(
+            //                     height: 200,
+            //                     width: 200,
+            //                     child: Image.file(
+            //                       _image!, // The file image
+            //                     ),
+            //                   )
+            //                 : InkWell(
+            //                     onTap: () {
+            //                       _pickImage();
+            //                     },
+            //                     child: Container(
+            //                       height: 200,
+            //                       width: 200,
+            //                       child: Image.asset(
+            //                         "Assets/Images/add_img.png", // Ensure this image exists in your assets folder
+            //                         // fit: BoxFit
+            //                         //     .cover, // Optional: fit the image properly within the container
+            //                       ),
+            //                     ),
+            //                   ),
+            //           ],
+            //         ),
+            // ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -381,10 +421,10 @@ class _WhichLocationState extends State<WhichLocation> {
                       children: [
                         ElevatedButton.icon(
                           onPressed: () async {
-                            await _pickDate(context);
+                            await _pickDateTime(context);
                           },
                           icon: Icon(Icons.calendar_today),
-                          label: Text(_getFormattedDate()),
+                          label: Text(_getFormattedDateTime()),
                         ),
                       ],
                     ),
@@ -397,7 +437,7 @@ class _WhichLocationState extends State<WhichLocation> {
                     padding: const EdgeInsets.only(right: 24.0, left: 24.0),
                     child: Center(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           // Perform actions when the button is pressed
                           String startPlace = _startPlaceController.text;
                           String endPlace = _endPlaceController.text;
@@ -411,13 +451,24 @@ class _WhichLocationState extends State<WhichLocation> {
                             print("End Place: $endPlace");
                             print("Selected Date: ${selectedDate.toString()}");
                             CreateDocumentFirebase(
-                                _startPlaceController.text,
                                 _endPlaceController.text,
+                                _startPlaceController.text,
                                 User_Name,
-                                Upload_Image_Link,
                                 ContactNo.text,
                                 Des.text,
                                 _selectedDate.toString());
+
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            prefs.setBool("Has_From_To", true);
+                            prefs.setString(
+                              "To",
+                              _endPlaceController.text,
+                            );
+                            prefs.setString("From", _startPlaceController.text);
+                            Has_From_To = true;
+                            setState(() {});
+
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

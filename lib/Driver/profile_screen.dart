@@ -127,7 +127,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
       String MakeId = '$User_Name $User_Id';
 
       await chatCollection
-          .doc(MakeId)
+          .doc(User_Id)
           .update({
             'Profile_Pic': downloadUrl,
           })

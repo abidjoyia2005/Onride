@@ -21,12 +21,11 @@ import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 
 class DriverRides extends StatefulWidget {
-  const DriverRides({super.key});
-
   @override
   State<DriverRides> createState() => _DriverRidesState();
 }
@@ -375,38 +374,38 @@ class _DriverRidesState extends State<DriverRides> {
   void saveUserLocation(
       String userId, String username, double latitude, double longitude) {
     // Determine the grid cell based on the user's location
-    String gridCell = getGridCell(latitude, longitude);
-    print("Curent location Gridcell: $gridCell");
+
+    print("Curent location from to: $From $To ");
 
     // Reference to the Firestore collection and document path
     DocumentReference userDocRef = FirebaseFirestore.instance
         .collection('Vicahle')
-        .doc("lahore mianwali")
+        .doc("$From $To")
         .collection('usersForRide')
         .doc(userId);
 
     // Data to be saved
     Map<String, dynamic> userData = {
       'username': username,
-      'Profile_Pic': User_Profile_Picture,
+      'image': Has_Driver_Acount ? Vicale_Type : User_Profile_Picture,
       "time": DateTime.now().toString(),
       'latitude': latitude,
       'longitude': longitude,
     };
 
     // Save or update the user's location in Firestore
-    userDocRef.update(userData).then((_) {
+    userDocRef.set(userData, SetOptions(merge: true)).then((_) {
       print('User location saved successfully');
     }).catchError((error) {
       print('Failed to save user location: $error');
     });
 
     CollectionReference chatCollection =
-        FirebaseFirestore.instance.collection('grid_cells');
+        FirebaseFirestore.instance.collection('Vicahle');
 
-    chatCollection.doc(gridCell).set({
+    chatCollection.doc("$From $To").set({
       'User_Name': User_Name,
-    });
+    }, SetOptions(merge: true));
   }
 
   // Fetch users within a 3x3 km area and update the map
@@ -427,9 +426,8 @@ class _DriverRidesState extends State<DriverRides> {
   Future<void> getUsersInArea(double latitude, double lngtude) async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('Vicahle')
-        .where(FieldPath.documentId, isEqualTo: "$fromLocation $toLocation")
-        .where(FieldPath.documentId,
-            isGreaterThanOrEqualTo: "$fromLocation $toLocation")
+        .where(FieldPath.documentId, isEqualTo: "$From $To")
+        .where(FieldPath.documentId, isGreaterThanOrEqualTo: "$From $To")
         .get();
 
     print('Grid id :${snapshot.docs}');
@@ -469,10 +467,11 @@ class _DriverRidesState extends State<DriverRides> {
 
         if (difference.inSeconds < 20) {
           print("User name is ${userDoc['username']}");
+
           setState(() {
             _loadCustomMarker(
-                userDoc['Profile_Pic'] != null
-                    ? userDoc['Profile_Pic']
+                userDoc['image'] != null
+                    ? userDoc['image']
                     : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
                 userDoc['username'],
                 "hello",
@@ -589,6 +588,32 @@ class _DriverRidesState extends State<DriverRides> {
     } else {
       return false;
     }
+  }
+
+  void Movecamra(var Lat, var log) {
+    _mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(Lat, log),
+          zoom: 18.0,
+        ),
+      ),
+    );
+  }
+
+  double calculateDistance(double startLatitude, double startLongitude,
+      double endLatitude, double endLongitude) {
+    // Calculate the distance in meters
+    double distanceInMeters = Geolocator.distanceBetween(
+        startLatitude, startLongitude, endLatitude, endLongitude);
+
+    // Convert the distance to kilometers
+    double distanceInKilometers = distanceInMeters / 1000;
+
+    double roundedDistance =
+        double.parse(distanceInKilometers.toStringAsFixed(1));
+
+    return roundedDistance;
   }
 
   @override
@@ -727,12 +752,12 @@ class _DriverRidesState extends State<DriverRides> {
                                         child: Row(
                                           children: [
                                             SizedBox(width: 15),
-                                            userDoc['Profile_Pic'] != null
+                                            userDoc['image'] != null
                                                 ? CircleAvatar(
                                                     radius: 20,
                                                     backgroundImage:
-                                                        NetworkImage(userDoc[
-                                                            'Profile_Pic']),
+                                                        NetworkImage(
+                                                            userDoc['image']),
                                                   )
                                                 : CircleAvatar(
                                                     radius: 20,
@@ -741,6 +766,33 @@ class _DriverRidesState extends State<DriverRides> {
                                                   ),
                                             SizedBox(width: 5),
                                             Text(userDoc['username']),
+                                            Spacer(),
+                                            GestureDetector(
+                                              onTap: () {
+                                                Movecamra(
+                                                  userDoc['latitude'],
+                                                  userDoc['longitude'],
+                                                );
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .location_history_outlined,
+                                                    color: Colors.grey[400],
+                                                    size: 18,
+                                                  ),
+                                                  Text(
+                                                    "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                    style: TextStyle(
+                                                        color: Colors.grey[400],
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.w800),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                             Spacer(),
                                             if (Timedef(userDoc['time']))
                                               Row(
@@ -834,115 +886,10 @@ class _DriverRidesState extends State<DriverRides> {
               );
             },
           ),
-          Fromto ? FromTo() : SelectedFromTo()
-        ],
-      ),
-    );
-  }
-}
-
-final TextEditingController _startPlace = TextEditingController();
-final TextEditingController _endPlace = TextEditingController();
-var Fromto = true;
-var fromLocation;
-var toLocation;
-
-class FromTo extends StatefulWidget {
-  const FromTo({super.key});
-
-  @override
-  State<FromTo> createState() => _FromToState();
-}
-
-class _FromToState extends State<FromTo> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white54,
-      height: 220,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: 30,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 24.0, left: 24.0),
-            child: TextFormField(
-              controller: _startPlace,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: 'From',
-                contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 16.0),
-
-          // End Place TextField without suggestions
-          Padding(
-            padding: const EdgeInsets.only(right: 24.0, left: 24.0),
-            child: TextFormField(
-              controller: _endPlace,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: 'To',
-                contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            width: 200,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Primary color for the button
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
-              ),
-              onPressed: () async {
-                setState(() {
-                  fromLocation = _startPlace.text;
-                  toLocation = _endPlace.text;
-                  Fromto = false;
-                });
-              },
-              child: Text(
-                'Find Vicale',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white, // Text color white
-                ),
-              ),
-            ),
-          ),
+          SelectedFromTo(
+            from: From,
+            to: To,
+          )
         ],
       ),
     );
@@ -950,7 +897,9 @@ class _FromToState extends State<FromTo> {
 }
 
 class SelectedFromTo extends StatefulWidget {
-  const SelectedFromTo({super.key});
+  var from;
+  var to;
+  SelectedFromTo({required this.from, required this.to});
 
   @override
   State<SelectedFromTo> createState() => _SelectedFromToState();
@@ -980,19 +929,48 @@ class _SelectedFromToState extends State<SelectedFromTo> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              width: 15,
+            ),
             InkWell(
                 onTap: () {
-                  setState(() {
-                    Fromto = true;
-                  });
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => UberMap()),
+                  );
                 },
-                child: Icon(Icons.edit)),
-            Text(
-              fromLocation,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "Poppinssb"),
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                )),
+            Spacer(),
+            Container(
+              width: 100,
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                border: Border.all(
+                  color: Colors.black, // Set your desired border color
+                  width: 2.0, // Set the border width
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2), // Shadow color
+                    spreadRadius: 2, // Spread radius of the shadow
+                    blurRadius: 5, // Blur radius of the shadow
+                    offset: Offset(0, 3), // Offset of the shadow (x, y)
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  widget.from.toString(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: "Poppinssb",
+                  ),
+                ),
+              ),
             ),
             SizedBox(
               width: 10,
@@ -1006,12 +984,52 @@ class _SelectedFromToState extends State<SelectedFromTo> {
             SizedBox(
               width: 10,
             ),
-            Text(
-              toLocation,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "Poppinssb"),
+            Container(
+              width: 100,
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                border: Border.all(
+                  color: Colors.black, // Set your desired border color
+                  width: 2.0, // Set the border width
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2), // Shadow color
+                    spreadRadius: 2, // Spread radius of the shadow
+                    blurRadius: 5, // Blur radius of the shadow
+                    offset: Offset(0, 3), // Offset of the shadow (x, y)
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  widget.to.toString(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: "Poppinssb",
+                  ),
+                ),
+              ),
+            ),
+            Spacer(),
+            InkWell(
+                onTap: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  setState(() {
+                    prefs.remove("Has_From_To");
+                    Has_From_To = false;
+                  });
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => UberMap()),
+                  );
+                },
+                child: Image.asset("Assets/icons/change.png")),
+            SizedBox(
+              width: 20,
             )
           ],
         ),

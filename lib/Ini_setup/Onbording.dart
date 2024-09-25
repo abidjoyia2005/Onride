@@ -13,21 +13,21 @@ class OnBoardingScreen extends StatefulWidget {
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   PageController pageController = PageController();
   final List<String> _titlesList = [
-    'Add Address',
-    'Choose Your Favorite Food',
-    'Fastest Delivery',
+    'Find Nearby Vehicles',
+    'Share Rides, Save Costs',
+    'Real-Time Updates',
   ];
 
   final List<String> _subtitlesList = [
-    'Find perfect restaurant nearby or place order at your favorite restaurant in few clicks.',
-    'A diverse list of different dining restaurants throughout the territory and around your area carefully selected',
-    'Get your favorite food fastest delivered at your doorstep',
+    'Instantly scan your surroundings within an 8 km radius to find available vehicles near you. Experience quick, convenient access to rides just around the corner.',
+    'Join others traveling to the same destination and share your ride for a more affordable and eco-friendly journey. Ride smart and reduce your travel costs',
+    'Stay informed with real-time updates on vehicle availability, ride status, and direct communication with drivers, all in one place.',
   ];
 
   final List<String> _imageList = [
-    'assets/images/intro_1.png',
-    'assets/images/intro_2.png',
-    'assets/images/intro_3.png',
+    'Assets/Images/1.png',
+    'Assets/Images/2.png',
+    'Assets/Images/3.png',
   ];
 
   int _currentIndex = 0;
@@ -44,7 +44,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     final imageList = _imageList;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Color(0XFF151618) : Colors.white,
+      backgroundColor: Colors.white,
       body: Stack(
         children: <Widget>[
           PageView.builder(
@@ -76,11 +76,14 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.lightBlue,
                   ),
                   child: Text(
                     "GET STARTED",
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600),
                   ),
                   onPressed: () {
                     setFinishedOnBoarding();
@@ -94,7 +97,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             ),
           Center(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 130),
+              padding: const EdgeInsets.only(bottom: 100),
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: SmoothPageIndicator(
@@ -102,8 +105,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   count: _imageList.length,
                   effect: ScrollingDotsEffect(
                     spacing: 20,
-                    activeDotColor: Colors.green,
-                    dotColor: Color(0XFFFBDBD1),
+                    activeDotColor: Colors.lightBlue,
+                    dotColor: Colors.grey,
                     dotWidth: 7,
                     dotHeight: 7,
                   ),
@@ -112,64 +115,63 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             ),
           ),
           if (_currentIndex + 1 != _imageList.length)
-            Positioned(
-              right: 20,
-              top: 40,
-              child: InkWell(
-                onTap: () {
-                  setFinishedOnBoarding();
-                  // pushReplacement(context, AuthScreen());
-                },
-                child: Text(
-                  "SKIP",
-                  style: TextStyle(
-                    fontSize: 19,
-                    color: Colors.blue,
-                    fontFamily: 'Poppinsm',
+            // Positioned(
+            //   right: 20,
+            //   top: 40,
+            //   child: InkWell(
+            //     onTap: () {
+            //       setFinishedOnBoarding();
+            //       // pushReplacement(context, AuthScreen());
+            //     },
+            //     child: Text(
+            //       "SKIP",
+            //       style: TextStyle(
+            //         fontSize: 19,
+            //         color: Colors.blue,
+            //         fontFamily: 'Poppinsm',
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            if (_currentIndex + 1 != _imageList.length)
+              Positioned(
+                right: 13,
+                bottom: 17,
+                child: InkWell(
+                  onTap: () {
+                    pageController.nextPage(
+                      duration: Duration(milliseconds: 100),
+                      curve: Curves.bounceIn,
+                    );
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.94,
+                    height: MediaQuery.of(context).size.height * 0.08,
+                    padding: EdgeInsets.all(10),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: Text(
+                        "NEXT",
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xffFFFFFF),
+                            fontWeight: FontWeight.w600),
+                      ),
+                      onPressed: () {
+                        pageController.nextPage(
+                          duration: Duration(milliseconds: 200),
+                          curve: Curves.bounceIn,
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-          if (_currentIndex + 1 != _imageList.length)
-            Positioned(
-              right: 13,
-              bottom: 17,
-              child: InkWell(
-                onTap: () {
-                  pageController.nextPage(
-                    duration: Duration(milliseconds: 100),
-                    curve: Curves.bounceIn,
-                  );
-                },
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.94,
-                  height: MediaQuery.of(context).size.height * 0.08,
-                  padding: EdgeInsets.all(10),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      backgroundColor: Colors.blue,
-                    ),
-                    child: Text(
-                      "NEXT",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color:
-                            isDarkMode ? Color(0xffFFFFFF) : Color(0XFF333333),
-                      ),
-                    ),
-                    onPressed: () {
-                      pageController.nextPage(
-                        duration: Duration(milliseconds: 100),
-                        curve: Curves.bounceIn,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
           if (_currentIndex + 1 == _imageList.length)
             Positioned(
               left: 15,
@@ -206,7 +208,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             child: Container(
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
-                color: isDarkMode ? Color(0XFF242528) : Color(0XFFFCEEE9),
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.elliptical(400, 180),
                   bottomRight: Radius.elliptical(400, 180),
@@ -228,7 +230,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isDarkMode ? Colors.white : Color(0XFF333333),
+              color: Color(0XFF333333),
               fontFamily: 'Poppinsm',
               fontSize: 20,
             ),
@@ -239,15 +241,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isDarkMode ? Colors.white : Color(0XFF333333),
-                fontFamily: 'Poppinsl',
-                height: 2,
-                letterSpacing: 1.2,
-                fontSize: 15,
-              ),
+                  color: Color(0XFF333333),
+                  fontFamily: 'Poppinsl',
+                  height: 2,
+                  letterSpacing: 1.2,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400),
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
         ],
       ),
     );

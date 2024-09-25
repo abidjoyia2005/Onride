@@ -20,7 +20,10 @@ class _SplashScreenState extends State<SplashScreen> {
     User_Name = prefs.getString("User_Name");
     User_Profile_Picture = prefs.getString("Profile_Picture");
     Has_Driver_Acount = prefs.getBool("Has_Driver_Acount") ?? false;
-
+    Has_From_To = prefs.get("Has_From_To") ?? false;
+    To = prefs.getString("To") ?? null;
+    From = prefs.getString("From") ?? null;
+    Vicale_Type = prefs.getString("Vicale_Type") ?? null;
     print("Username :$User_Name, user id :$User_Id");
   }
 

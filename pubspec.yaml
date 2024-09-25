@@ -95,6 +95,7 @@ flutter:
     - Assets/gifs/map.gif
     - Assets/Images/
     - Assets/fonts/
+    - Assets/icons/
 
 
    
@@ -130,5 +131,44 @@ flutter:
     - family: Poppinssb
       fonts:
         - asset: Assets/fonts/Poppins-SemiBold.ttf
+    - family : Lemon
+      fonts:
+        - asset: assets/fonts/Lemon-Regular.ttf
+          weight: 400
+    - family : Sofia
+      fonts:
+        - asset: Assets/fonts/Sofia/SofiaProBold.otf
+          weight: 900
+        - asset: Assets/fonts/Sofia/SofiaProSemiBold.otf
+          weight: 800
+        - asset: Assets/fonts/Sofia/SofiaProMedium.otf
+          weight: 700
+        - asset: Assets/fonts/Sofia/SofiaProRegular.otf
+          weight: 600
+        - asset: Assets/fonts/Sofia/SofiaProLight.otf
+          weight: 500
+        - asset: Assets/fonts/Sofia/SofiaProExtraLight.otf
+          weight: 400
+        - asset: Assets/fonts/Sofia/SofiaProUltraLight.otf
+          weight: 300
+    - family : Poppins
+      fonts:
+        - asset: Assets/fonts/Poppins/Poppins-ExtraBold.otf
+          weight: 900
+        - asset: Assets/fonts/Poppins/Poppins-Bold.otf
+          weight: 800
+        - asset: Assets/fonts/Poppins/Poppins-SemiBold.otf
+          weight: 700
+        - asset: Assets/fonts/Poppins/Poppins-Medium.otf
+          weight: 600
+        - asset: Assets/fonts/Poppins/Poppins-Regular.otf
+          weight: 500
+        - asset: Assets/fonts/Poppins/Poppins-Light.otf
+          weight: 400
+        - asset: Assets/fonts/Poppins/Poppins-ExtraLight.otf
+          weight: 300
+        - asset: Assets/fonts/Poppins/Poppins-Thin.otf
+          weight: 200
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

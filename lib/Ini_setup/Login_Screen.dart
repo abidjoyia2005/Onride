@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/Driver/Uber_map.dart';
 import 'package:flutter_application_1/Ini_setup/Choose_Screen.dart';
 import 'package:flutter_application_1/Ini_setup/Forgot_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Signuo.dart';
@@ -35,10 +36,19 @@ class _LoginScreen extends State<LoginScreen> {
         String userName = data['User_Name'] ?? 'No Name';
         User_Name = userName;
         Has_Driver_Acount = data['Driver_Acount'] ?? false;
+        Vicale_Type = data['Vicale_Type'] ?? "null";
+        Has_From_To = data['Has_From_To'] ?? false;
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("User_Name", userName);
         prefs.setBool("Has_Driver_Acount", Has_Driver_Acount);
+        prefs.setBool("Has_From_To", Has_From_To);
+        prefs.setString("Vicale_Type", Vicale_Type);
         setState(() {});
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UberMap()),
+        );
 
         print("Data Download for login: User Name is $userName");
       } else {
@@ -167,9 +177,10 @@ class _LoginScreen extends State<LoginScreen> {
                   AuthService authService = AuthService();
 
                   var res = await authService.signInWithEmail(
-                      _emailController.text, _passwordController.text);
+                      _emailController.text, _passwordController.text, context);
+                  print("login Response :$res");
 
-                  if (res != "null") {
+                  if (res != null) {
                     User_Id = res;
                     final SharedPreferences prefs =
                         await SharedPreferences.getInstance();
@@ -178,10 +189,6 @@ class _LoginScreen extends State<LoginScreen> {
                     GetDataForLogin(User_Id);
 
                     setState(() {});
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => GifWithBlur()),
-                    );
                   }
                 },
                 child: Text(
