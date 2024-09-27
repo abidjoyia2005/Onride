@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -106,7 +107,7 @@ class _UberMapState extends State<UberMap> {
     }
   }
 
-  var BottomSheetData;
+  var BottomSheetData = null;
   @override
   void initState() {
     super.initState();
@@ -519,6 +520,12 @@ class _UberMapState extends State<UberMap> {
         .get();
 
     print('Grid id :${snapshot.docs}');
+    setState(() {
+      _markers.clear();
+    });
+
+    List<Map<String, dynamic>> allUsersData =
+        []; // Create a list to store all users
 
     for (var doc in snapshot.docs) {
       CollectionReference usersCollection = FirebaseFirestore.instance
@@ -527,19 +534,17 @@ class _UberMapState extends State<UberMap> {
           .collection('users');
 
       QuerySnapshot usersSnapshot = await usersCollection.get();
-      BottomSheetData = usersSnapshot;
-      setState(() {});
 
       for (var userDoc in usersSnapshot.docs) {
         print('users data:${userDoc.data()}');
+
+        // Add user data to the list
+        allUsersData.add(userDoc.data() as Map<String, dynamic>);
 
         var nowtime = DateTime.now();
         DateTime parsedTime = DateTime.parse(userDoc['time']);
         Duration difference = nowtime.difference(parsedTime);
 
-        setState(() {
-          _markers.clear();
-        });
         print("Second deferance is ${difference} for  ${userDoc['username']}");
 
         if (difference.inSeconds < 20) {
@@ -558,6 +563,19 @@ class _UberMapState extends State<UberMap> {
         }
       }
     }
+
+    // Now BottomSheetData contains all users
+    setState(() {
+      BottomSheetData =
+          sortUsersByTime(allUsersData); // Store accumulated users data
+    });
+  }
+
+  List<Map<String, dynamic>> sortUsersByTime(
+      List<Map<String, dynamic>> usersData) {
+    // Sort the list based on 'parsedTime', with most recent at the top
+    usersData.sort((a, b) => b['time'].compareTo(a['time']));
+    return usersData; // Return the sorted list
   }
 
   TextEditingController Descraption = TextEditingController();
@@ -978,7 +996,7 @@ class _UberMapState extends State<UberMap> {
                           child: BottomSheetData != null
                               ? Column(
                                   children: [
-                                    for (var userDoc in BottomSheetData.docs)
+                                    for (var userDoc in BottomSheetData)
                                       Padding(
                                         padding:
                                             EdgeInsets.fromLTRB(0, 10, 10, 0),
