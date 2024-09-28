@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,17 +16,21 @@ import 'package:flutter_application_1/client_user/Selected_driver.dart';
 import 'package:flutter_application_1/client_user/list_ride.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:async';
+
 import 'dart:ui' as ui;
-import 'package:http/http.dart' as http;
+
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:intl/intl.dart';
+
+import 'package:image_picker/image_picker.dart';
+
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image/image.dart' as img;
+import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage import
+import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UberMap extends StatefulWidget {
   const UberMap({super.key});
@@ -720,24 +725,24 @@ class _UberMapState extends State<UberMap> {
           icon: BitmapDescriptor.fromBytes(markerIcon),
           infoWindow: InfoWindow(
               onTap: () {
-                // Show the alert dialog
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      contentPadding: EdgeInsets.zero, // Remove default padding
-                      content: SingleChildScrollView(
-                        child: RideWidget(
-                          fromPlace: "mianwali",
-                          toPlace: "islamabad",
-                          rideStatus: "good",
-                          dateTime: DateTime.now(),
-                          fare: "1500", // Example fare
-                        ),
-                      ),
-                    );
-                  },
-                );
+                // // Show the alert dialog
+                // showDialog(
+                //   context: context,
+                //   builder: (BuildContext context) {
+                //     return AlertDialog(
+                //       contentPadding: EdgeInsets.zero, // Remove default padding
+                //       content: SingleChildScrollView(
+                //         child: RideWidget(
+                //           fromPlace: "mianwali",
+                //           toPlace: "islamabad",
+                //           rideStatus: "good",
+                //           dateTime: DateTime.now(),
+                //           fare: "1500", // Example fare
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // );
               },
               snippet: Des,
               title: Name),
@@ -811,7 +816,7 @@ class _UberMapState extends State<UberMap> {
     var nowtime = DateTime.now();
     DateTime parsedTime = DateTime.parse(Time);
     Duration difference = nowtime.difference(parsedTime);
-    if (difference.inSeconds < 15) {
+    if (difference.inSeconds < 25) {
       return true;
     } else {
       return false;
@@ -929,7 +934,7 @@ class _UberMapState extends State<UberMap> {
                     ),
                   ],
                 ),
-                child: Image.asset("Assets/Images/maplocation.png"),
+                child: Image.asset("Assets/Images/maps.gif"),
               ),
             ),
           ),
@@ -955,7 +960,7 @@ class _UberMapState extends State<UberMap> {
                     ),
                   ],
                 ),
-                child: Image.asset("Assets/Images/userLocation.png"),
+                child: Image.asset("Assets/Images/consulting.gif"),
               ),
             ),
           ),
@@ -1018,32 +1023,65 @@ class _UberMapState extends State<UberMap> {
                                             SizedBox(width: 5),
                                             Text(userDoc['username']),
                                             Spacer(),
-                                            GestureDetector(
-                                              onTap: () {
-                                                Movecamra(
-                                                  userDoc['latitude'],
-                                                  userDoc['longitude'],
-                                                );
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons
-                                                        .location_history_outlined,
-                                                    color: Colors.grey[400],
-                                                    size: 18,
+                                            Timedef(userDoc['time'])
+                                                ? GestureDetector(
+                                                    onTap: () {
+                                                      Movecamra(
+                                                        userDoc['latitude'],
+                                                        userDoc['longitude'],
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .location_history_outlined,
+                                                          color:
+                                                              Color(0xFF319AFF),
+                                                          size: 18,
+                                                        ),
+                                                        Text(
+                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                          style: TextStyle(
+                                                              color: Color(
+                                                                  0xFF319AFF),
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : GestureDetector(
+                                                    onTap: () {
+                                                      Movecamra(
+                                                        userDoc['latitude'],
+                                                        userDoc['longitude'],
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .location_history_outlined,
+                                                          color:
+                                                              Colors.grey[400],
+                                                          size: 18,
+                                                        ),
+                                                        Text(
+                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .grey[400],
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                  Text(
-                                                    "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                    style: TextStyle(
-                                                        color: Colors.grey[400],
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.w800),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
                                             Spacer(),
                                             if (Timedef(userDoc['time']))
                                               Row(
@@ -1149,6 +1187,280 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  var _image;
+  final ImagePicker _picker = ImagePicker();
+  bool isLoading = false; // Loading state
+
+  Future<void> _pickImage() async {
+    // Request permissions
+
+    // Show a dialog to let the user choose between gallery and camera
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pick an image'),
+          content: Text('Choose a source'),
+          actions: <Widget>[
+            Container(
+              child: Column(
+                children: [
+                  Container(
+                    height: 50,
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.lightBlue, // Primary color for the button
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context); // Close the dialog
+                        await _pickFromCamera();
+                      },
+                      child: Text(
+                        'Camera',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    height: 50,
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors
+                            .deepOrangeAccent, // Primary color for the button
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context); // Close the dialog
+                        await _pickFromGallery();
+                      },
+                      child: Text(
+                        'Gallery',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // TextButton(
+            //   child: Text('Gallery'),
+            //   onPressed: () async {
+            //     Navigator.pop(context); // Close the dialog
+            //     await _pickFromGallery();
+            //   },
+            // ),
+            // TextButton(
+            //   child: Text('Camera'),
+            //   onPressed: () async {
+            //     Navigator.pop(context); // Close the dialog
+            //     await _pickFromCamera();
+            //   },
+            // ),
+          ],
+        );
+      },
+    );
+  }
+
+// Pick image from gallery
+  Future<void> _pickFromGallery() async {
+    // Request permission to access the gallery
+    PermissionStatus permissionStatus = await Permission.storage.request();
+
+    // Check if the permission is granted
+    if (permissionStatus.isGranted) {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+
+        // Optionally compress or crop the image here
+        _cropImage();
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('No image selected.')));
+      }
+    } else if (permissionStatus.isDenied) {
+      // Permission was denied
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Permission denied.')));
+    } else if (permissionStatus.isPermanentlyDenied) {
+      // Permission was permanently denied, direct the user to app settings
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Permission permanently denied. Please enable access in settings.')));
+      await openAppSettings(); // This opens the app settings for the user to grant permission
+    }
+  }
+
+// Pick image from camera
+  Future<void> _pickFromCamera() async {
+    // Request camera permission
+    PermissionStatus permissionStatus = await Permission.camera.request();
+
+    // Check if permission is granted
+    if (permissionStatus.isGranted) {
+      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+
+        // Optionally compress or crop the image here
+        _cropImage();
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('No image selected.')));
+      }
+    } else if (permissionStatus.isDenied) {
+      // If permission is denied, show a message to the user
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Camera permission denied.')));
+    } else if (permissionStatus.isPermanentlyDenied) {
+      // If permission is permanently denied, prompt the user to enable it in settings
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Camera permission permanently denied. Please enable it in settings.')));
+      await openAppSettings(); // Opens the app settings for the user to manually enable permissions
+    }
+  }
+
+  Future<void> _cropImage() async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: _image!.path,
+      aspectRatio:
+          const CropAspectRatio(ratioX: 1, ratioY: 1), // Set aspect ratio
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Adjust Profile Picture',
+          lockAspectRatio: true, // Lock aspect ratio to square
+        ),
+        IOSUiSettings(
+          title: 'Adjust Profile Picture',
+          aspectRatioLockEnabled: true, // Lock aspect ratio for iOS
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
+      setState(() {
+        _image =
+            File(croppedFile.path); // Convert CroppedFile to File using .path
+      });
+
+      // Compress the image
+      _compressImage();
+    }
+  }
+
+  Future<void> _compressImage() async {
+    // Read the image file as bytes
+    Uint8List imageBytes = await _image!.readAsBytes();
+
+    // Decode the image
+    img.Image? decodedImage = img.decodeImage(imageBytes);
+
+    if (decodedImage != null) {
+      // Resize the image (reduce size) and compress to JPEG format
+      img.Image resizedImage =
+          img.copyResize(decodedImage, width: 500); // Resize width to 500px
+
+      // Convert to compressed JPEG format with lower quality
+      List<int> compressedBytes =
+          img.encodeJpg(resizedImage, quality: 70); // Adjust quality
+
+      // Write the compressed image back to the file
+      File compressedFile = await _image!.writeAsBytes(compressedBytes);
+
+      // Update the state with the compressed image
+      setState(() {
+        _image = compressedFile;
+      });
+
+      // Upload the compressed image to Firebase Storage
+      _uploadToFirebaseStorage(compressedFile);
+    }
+  }
+
+  Future<void> _uploadToFirebaseStorage(File imageFile) async {
+    setState(() {
+      isLoading = true; // Start loading when upload begins
+    });
+
+    try {
+      // Get the file name
+      String fileName = path.basename(imageFile.path);
+
+      // Create a reference to Firebase Storage
+      Reference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child('ProfilePic/$fileName');
+
+      // Upload the file
+      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+
+      // Get the download URL after the upload is complete
+      TaskSnapshot taskSnapshot = await uploadTask;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      User_Profile_Picture = downloadUrl;
+      prefs.setString("Profile_Picture", downloadUrl);
+      setState(() {});
+
+      // Print the download URL (you can use this URL to display the image later)
+      print("Image uploaded! Download URL: $downloadUrl");
+
+      CollectionReference chatCollection =
+          FirebaseFirestore.instance.collection('User_Data');
+      String MakeId = '$User_Name $User_Id';
+
+      await chatCollection
+          .doc(User_Id)
+          .update({
+            'Profile_Pic': downloadUrl,
+          })
+          .then((value) => () {
+                print("Username Added");
+              })
+          .catchError(
+              (error) => print("Failed to add user message count: $error"));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image uploaded successfully!')));
+    } catch (e) {
+      // Show a SnackBar with the error
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+    } finally {
+      setState(() {
+        isLoading = false; // Stop loading after upload completes
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -1156,190 +1468,212 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Has_Driver_Acount
-              ? Container(
-                  padding: const EdgeInsets.only(top: 50, bottom: 20),
-                  child: Column(
-                    children: [
-                      // Profile Picture
-                      User_Profile_Picture != null
-                          ? InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Vichale_cHOSE(),
-                                    ));
-                              },
-                              child: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 40,
-                                    backgroundImage: NetworkImage(Vicale_Type),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      height: 30,
-                                      width: 30,
-                                      decoration: BoxDecoration(
-                                        color: Colors
-                                            .blue, // You can change the color to fit your design
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.edit,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Vichale_cHOSE(),
-                                    ));
-                              },
-                              child: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 40,
-                                    backgroundImage:
-                                        AssetImage('Assets/Images/No_Dp.jpeg'),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      height: 30,
-                                      width: 30,
-                                      decoration: BoxDecoration(
-                                        color: Colors
-                                            .blue, // You can change the color to fit your design
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.add,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                      SizedBox(height: 15),
-                      // Username
-                      Text(
-                        User_Name,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+          isLoading
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 50,
+                    ),
+                    CircleAvatar(
+                      radius: 50,
+                      child: CircularProgressIndicator(
+                        color: Colors.blue,
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
                 )
-              : Container(
-                  padding: const EdgeInsets.only(top: 50, bottom: 20),
-                  child: Column(
-                    children: [
-                      // Profile Picture
-                      User_Profile_Picture != null
-                          ? InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProfilePictureScreen(),
-                                    ));
-                              },
-                              child: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 40,
-                                    backgroundImage:
-                                        NetworkImage(User_Profile_Picture),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      height: 30,
-                                      width: 30,
-                                      decoration: BoxDecoration(
-                                        color: Colors
-                                            .blue, // You can change the color to fit your design
-                                        shape: BoxShape.circle,
+              : Has_Driver_Acount
+                  ? Container(
+                      padding: const EdgeInsets.only(top: 50, bottom: 20),
+                      child: Column(
+                        children: [
+                          // Profile Picture
+                          User_Profile_Picture != null
+                              ? InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Vichale_cHOSE(),
+                                        ));
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 40,
+                                        backgroundImage:
+                                            NetworkImage(Vicale_Type),
                                       ),
-                                      child: Icon(
-                                        Icons.edit,
-                                        color: Colors.white,
-                                        size: 20,
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 30,
+                                          width: 30,
+                                          decoration: BoxDecoration(
+                                            color: Colors
+                                                .blue, // You can change the color to fit your design
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            )
-                          : InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProfilePictureScreen(),
-                                    ));
-                              },
-                              child: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 40,
-                                    backgroundImage:
-                                        AssetImage('Assets/Images/No_Dp.jpeg'),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      height: 30,
-                                      width: 30,
-                                      decoration: BoxDecoration(
-                                        color: Colors
-                                            .blue, // You can change the color to fit your design
-                                        shape: BoxShape.circle,
+                                )
+                              : InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Vichale_cHOSE(),
+                                        ));
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 40,
+                                        backgroundImage: AssetImage(
+                                            'Assets/Images/No_Dp.jpeg'),
                                       ),
-                                      child: Icon(
-                                        Icons.add,
-                                        color: Colors.white,
-                                        size: 20,
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 30,
+                                          width: 30,
+                                          decoration: BoxDecoration(
+                                            color: Colors
+                                                .blue, // You can change the color to fit your design
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                          SizedBox(height: 15),
+                          // Username
+                          Text(
+                            User_Name,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                      SizedBox(height: 15),
-                      // Username
-                      Text(
-                        User_Name,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.only(top: 50, bottom: 20),
+                      child: Column(
+                        children: [
+                          // Profile Picture
+                          User_Profile_Picture != null
+                              ? InkWell(
+                                  onTap: () {
+                                    _pickImage();
+                                    // Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //       builder: (context) =>
+                                    //           ProfilePictureScreen(),
+                                    //     ));
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 50,
+                                        backgroundImage:
+                                            NetworkImage(User_Profile_Picture),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 30,
+                                          width: 30,
+                                          decoration: BoxDecoration(
+                                            color: Colors
+                                                .blue, // You can change the color to fit your design
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : InkWell(
+                                  onTap: () {
+                                    _pickImage();
+                                    // Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //       builder: (context) =>
+                                    //           ProfilePictureScreen(),
+                                    //     ));
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 50,
+                                        backgroundImage: AssetImage(
+                                            'Assets/Images/No_Dp.jpeg'),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 30,
+                                          width: 30,
+                                          decoration: BoxDecoration(
+                                            color: Colors
+                                                .blue, // You can change the color to fit your design
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                          SizedBox(height: 15),
+                          // Username
+                          Text(
+                            User_Name,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
           _buildListTile(
             context,
             isSelected: false,
@@ -1363,34 +1697,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
               isSelected: false,
               onTap: () {},
             ),
-          ),
-          _buildListTile(
-            context,
-            icon: Icons.account_balance,
-            title: 'Bank Details',
-            isSelected: false,
-            onTap: () {},
-          ),
-          _buildListTile(
-            context,
-            icon: CupertinoIcons.person,
-            title: 'Profile',
-            isSelected: false,
-            onTap: () {},
-          ),
-          _buildListTile(
-            context,
-            icon: Icons.language,
-            title: 'Language',
-            isSelected: false,
-            onTap: () {},
-          ),
-          _buildListTile(
-            context,
-            icon: CupertinoIcons.chat_bubble_2_fill,
-            title: 'Inbox',
-            isSelected: false,
-            onTap: () {},
           ),
           _buildListTile(
             isSelected: false,

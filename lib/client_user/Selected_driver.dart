@@ -69,7 +69,9 @@ class _WhichLocationState extends State<WhichLocation> {
         if (fullDateTime.isBefore(DateTime.now())) {
           // Show a message or handle the invalid selection
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Cannot select a past date or time')),
+            SnackBar(
+                backgroundColor: Colors.redAccent,
+                content: Text('Cannot select a past date or time')),
           );
         } else {
           setState(() {
@@ -85,7 +87,7 @@ class _WhichLocationState extends State<WhichLocation> {
     if (_selectedDate != null) {
       return DateFormat('MM/dd/yyyy hh:mm a').format(_selectedDate!);
     }
-    return 'Select Date & Time';
+    return 'Select Date & Time  ';
   }
 
   File? _image;
@@ -273,7 +275,9 @@ class _WhichLocationState extends State<WhichLocation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Bus Travel"),
+        centerTitle: true,
+        title: Text('Travel Information',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -314,11 +318,18 @@ class _WhichLocationState extends State<WhichLocation> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Travel Information',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
                   SizedBox(height: 20),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                    child: Text(
+                      "Please type the exact names of the both place (From , To), otherwise, you may not be able to find a ride.",
+                      style: TextStyle(
+                          fontFamily: "Sofia",
+                          fontWeight: FontWeight.w200,
+                          fontSize: 16.0,
+                          color: Colors.black),
+                    ),
+                  ),
 
                   // Start Place TextField without suggestions
                   Padding(
@@ -423,16 +434,27 @@ class _WhichLocationState extends State<WhichLocation> {
 
                   // Date picker button
                   Padding(
-                    padding: const EdgeInsets.only(right: 24.0, left: 24.0),
+                    padding: const EdgeInsets.only(
+                        right: 24.0, left: 24.0, top: 15, bottom: 10),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton.icon(
                           onPressed: () async {
                             await _pickDateTime(context);
                           },
-                          icon: Icon(Icons.calendar_today),
-                          label: Text(_getFormattedDateTime()),
+                          icon: Icon(
+                            Icons.calendar_today,
+                            color: Color(0xFF319AFF),
+                          ),
+                          label: Text(
+                            _getFormattedDateTime(),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF319AFF),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -444,63 +466,81 @@ class _WhichLocationState extends State<WhichLocation> {
                   Padding(
                     padding: const EdgeInsets.only(right: 24.0, left: 24.0),
                     child: Center(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          // Perform actions when the button is pressed
-                          String startPlace = _startPlaceController.text;
-                          String endPlace = _endPlaceController.text;
-                          DateTime? selectedDate = _selectedDate;
+                      child: Container(
+                        height: 50,
+                        width: 200,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Perform actions when the button is pressed
+                            String startPlace = _startPlaceController.text;
+                            String endPlace = _endPlaceController.text;
+                            DateTime? selectedDate = _selectedDate;
 
-                          // Add logic for handling travel information
-                          if (startPlace.isNotEmpty &&
-                              endPlace.isNotEmpty &&
-                              selectedDate != null) {
-                            print("Start Place: $startPlace");
-                            print("End Place: $endPlace");
-                            print("Selected Date: ${selectedDate.toString()}");
-                            CreateDocumentFirebase(
-                                _endPlaceController.text.trim().toLowerCase(),
-                                _startPlaceController.text.trim().toLowerCase(),
-                                User_Name,
-                                ContactNo.text,
-                                Des.text,
-                                _selectedDate.toString());
+                            // Add logic for handling travel information
+                            if (startPlace.isNotEmpty &&
+                                endPlace.isNotEmpty &&
+                                selectedDate != null) {
+                              print("Start Place: $startPlace");
+                              print("End Place: $endPlace");
+                              print(
+                                  "Selected Date: ${selectedDate.toString()}");
+                              CreateDocumentFirebase(
+                                  _endPlaceController.text.trim().toLowerCase(),
+                                  _startPlaceController.text
+                                      .trim()
+                                      .toLowerCase(),
+                                  User_Name,
+                                  ContactNo.text,
+                                  Des.text,
+                                  _selectedDate.toString());
 
-                            SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
-                            prefs.setBool("Has_From_To", true);
-                            prefs.setString(
-                              "To",
-                              _endPlaceController.text,
-                            );
-                            prefs.setString("From", _startPlaceController.text);
-                            Has_From_To = true;
-                            To = _endPlaceController.text;
-                            From = _startPlaceController.text;
-                            setState(() {});
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setBool("Has_From_To", true);
+                              prefs.setString(
+                                "To",
+                                _endPlaceController.text,
+                              );
+                              prefs.setString(
+                                  "From", _startPlaceController.text);
+                              Has_From_To = true;
+                              To = _endPlaceController.text;
+                              From = _startPlaceController.text;
+                              setState(() {});
 
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DriverRides()),
-                            );
-                          } else {
-                            // Show an alert if any of the required fields are missing
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    "Please fill all fields and select a date"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 16),
-                          textStyle: TextStyle(fontSize: 18),
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => DriverRides()),
+                              );
+                            } else {
+                              // Show an alert if any of the required fields are missing
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Please fill all fields and select a date"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(
+                                0xFF319AFF), // Primary color for the button
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            ),
+                          ),
+                          child: Text(
+                            'Submit',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                        child: Text("Submit"),
                       ),
                     ),
                   ),

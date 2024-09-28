@@ -92,7 +92,7 @@ flutter:
   assets:
     - Assets/
     - Assets/Vicale_images/
-    - Assets/gifs/map.gif
+    - Assets/gifs/
     - Assets/Images/
     - Assets/fonts/
     - Assets/icons/

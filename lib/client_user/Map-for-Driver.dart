@@ -391,6 +391,7 @@ class _DriverRidesState extends State<DriverRides> {
       "time": DateTime.now().toString(),
       'latitude': latitude,
       'longitude': longitude,
+      'Description': Descraption.text
     };
 
     // Save or update the user's location in Firestore
@@ -474,7 +475,7 @@ class _DriverRidesState extends State<DriverRides> {
                     ? userDoc['image']
                     : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
                 userDoc['username'],
-                userDoc['description'],
+                userDoc['Description'],
                 userDoc['latitude'],
                 userDoc['longitude']);
           });
@@ -616,6 +617,116 @@ class _DriverRidesState extends State<DriverRides> {
     return roundedDistance;
   }
 
+  TextEditingController Descraption = TextEditingController();
+  void showAlertDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          child: AlertDialog(
+            icon: Padding(
+                padding: EdgeInsets.all(10),
+                child: Container(
+                    width: 150,
+                    height: 150,
+                    child: Image.asset("Assets/Images/send.png"))),
+            title: Text(
+              "Describe where you're going or the destination.",
+              style: TextStyle(
+                  fontFamily: "Sofia",
+                  fontWeight: FontWeight.w200,
+                  fontSize: 16.0,
+                  color: Colors.black),
+            ),
+            content: Padding(
+              padding: const EdgeInsets.only(right: 24.0, left: 24.0),
+              child: TextFormField(
+                controller: Descraption,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: 'Destination Location Name',
+                  labelStyle: TextStyle(fontSize: 11),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              Container(
+                height: 35,
+                width: 90,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Colors.amber, // Primary color for the button
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  onPressed: () async {
+                    print("User input: ${Descraption.text}");
+                    Navigator.of(context).pop(); // Close the alert dialog
+                  },
+                  child: Text(
+                    'Close',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Text color white
+                    ),
+                  ),
+                ),
+              ),
+              Spacer(),
+
+              /// Signup button
+              Container(
+                height: 35,
+                width: 90,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Colors.blue, // Primary color for the button
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {});
+                    // Handle the button press
+                    print("User input: ${Descraption.text}");
+                    Navigator.of(context).pop(); // Close the alert dialog
+                  },
+                  child: Text(
+                    'Submit',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Text color white
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -657,6 +768,32 @@ class _DriverRidesState extends State<DriverRides> {
                   circles: _radarCircle != null ? {_radarCircle!} : {},
                   markers: _markers, // Add markers to the map
                 ),
+          Positioned(
+            right: 12,
+            top: 90,
+            child: InkWell(
+              onTap: () {
+                showAlertDialog(context);
+              },
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5), // Shadow color
+                      spreadRadius: 1, // How wide the shadow spreads
+                      blurRadius: 3, // Softness of the shadow
+                      offset: Offset(0, 2), // Positioning of the shadow
+                    ),
+                  ],
+                ),
+                child: Image.asset("Assets/Images/consulting.gif"),
+              ),
+            ),
+          ),
           Positioned(
             bottom: 80.0, // Adjust position as needed
             right: 15.0, // Adjust position as needed
