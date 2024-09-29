@@ -904,32 +904,65 @@ class _DriverRidesState extends State<DriverRides> {
                                             SizedBox(width: 5),
                                             Text(userDoc['username']),
                                             Spacer(),
-                                            GestureDetector(
-                                              onTap: () {
-                                                Movecamra(
-                                                  userDoc['latitude'],
-                                                  userDoc['longitude'],
-                                                );
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons
-                                                        .location_history_outlined,
-                                                    color: Colors.grey[400],
-                                                    size: 18,
+                                            Timedef(userDoc['time'])
+                                                ? GestureDetector(
+                                                    onTap: () {
+                                                      Movecamra(
+                                                        userDoc['latitude'],
+                                                        userDoc['longitude'],
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .location_history_outlined,
+                                                          color:
+                                                              Color(0xFF319AFF),
+                                                          size: 18,
+                                                        ),
+                                                        Text(
+                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                          style: TextStyle(
+                                                              color: Color(
+                                                                  0xFF319AFF),
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : GestureDetector(
+                                                    onTap: () {
+                                                      Movecamra(
+                                                        userDoc['latitude'],
+                                                        userDoc['longitude'],
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .location_history_outlined,
+                                                          color:
+                                                              Colors.grey[400],
+                                                          size: 18,
+                                                        ),
+                                                        Text(
+                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .grey[400],
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                  Text(
-                                                    "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                    style: TextStyle(
-                                                        color: Colors.grey[400],
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.w800),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
                                             Spacer(),
                                             if (Timedef(userDoc['time']))
                                               Row(
