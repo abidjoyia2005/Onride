@@ -819,6 +819,37 @@ class _DriverRidesState extends State<DriverRides> {
             ),
           ),
           Positioned(
+            right: 12,
+            top: 138,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => GroupFromTo(
+                              hasFromTo: "$From $To",
+                            )));
+              },
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5), // Shadow color
+                      spreadRadius: 1, // How wide the shadow spreads
+                      blurRadius: 3, // Softness of the shadow
+                      offset: Offset(0, 2), // Positioning of the shadow
+                    ),
+                  ],
+                ),
+                child: Image.asset("Assets/gifs/inbox.gif"),
+              ),
+            ),
+          ),
+          Positioned(
             bottom: 80.0, // Adjust position as needed
             right: 15.0, // Adjust position as needed
             child: Container(
@@ -850,30 +881,25 @@ class _DriverRidesState extends State<DriverRides> {
               ),
             ),
           ),
-          Positioned(
-            bottom: 80.0, // Adjust position as needed
-            left: 15.0, // Adjust position as needed
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.white60,
-                  borderRadius: BorderRadius.all(Radius.circular(16))),
-              height: 50,
-              width: 50,
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => GroupFromTo(
-                                hasFromTo: "$From $To",
-                              )));
-                },
-                child: Container(
-                  child: Icon(Icons.chat),
-                ),
-              ),
-            ),
-          ),
+          // Positioned(
+          //   bottom: 80.0, // Adjust position as needed
+          //   left: 15.0, // Adjust position as needed
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //         color: Colors.white60,
+          //         borderRadius: BorderRadius.all(Radius.circular(16))),
+          //     height: 50,
+          //     width: 50,
+          //     child: InkWell(
+          //       onTap: () {
+
+          //       },
+          //       child: Container(
+          //         child: Icon(Icons.chat),
+          //       ),
+          //     ),
+          //   ),
+          // ),
           DraggableScrollableSheet(
             initialChildSize:
                 0.1, // Show only 1 row initially (10% of the screen)

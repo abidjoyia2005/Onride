@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
 class GroupFromTo extends StatefulWidget {
@@ -32,9 +33,9 @@ class _GroupFromToState extends State<GroupFromTo> {
     currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       setState(() {
-        userEmail = currentUser!.email; // Get user email
-        userProfilePicUrl = currentUser!.photoURL ??
-            'https://www.example.com/default_profile_pic.png'; // Get profile picture, provide a default if null
+        userEmail = User_Name; // Get user email
+        userProfilePicUrl =
+            User_Profile_Picture; // Get profile picture, provide a default if null
       });
     }
   }
@@ -72,15 +73,124 @@ class _GroupFromToState extends State<GroupFromTo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Group Chat'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () {
-              // Additional options can be added here
-            },
+        automaticallyImplyLeading: false,
+        title: Container(
+          height: 50,
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius:
+                BorderRadius.all(Radius.circular(25)), // Border radius
+            boxShadow: [
+              BoxShadow(
+                color:
+                    Colors.grey.withOpacity(0.5), // Shadow color with opacity
+                spreadRadius: 2, // How much the shadow should spread
+                blurRadius: 5, // Softness of the shadow
+                offset: Offset(
+                    0, 3), // Horizontal and Vertical position of the shadow
+              ),
+            ],
           ),
-        ],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 15,
+              ),
+              InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                  )),
+              Spacer(),
+              Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.black, // Set your desired border color
+                    width: 2.0, // Set the border width
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Shadow color
+                      spreadRadius: 2, // Spread radius of the shadow
+                      blurRadius: 5, // Blur radius of the shadow
+                      offset: Offset(0, 3), // Offset of the shadow (x, y)
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    From,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: "Poppinssb",
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                "To",
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.black, // Set your desired border color
+                    width: 2.0, // Set the border width
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Shadow color
+                      spreadRadius: 2, // Spread radius of the shadow
+                      blurRadius: 5, // Blur radius of the shadow
+                      offset: Offset(0, 3), // Offset of the shadow (x, y)
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    To,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: "Poppinssb",
+                    ),
+                  ),
+                ),
+              ),
+              Spacer(),
+              SizedBox(
+                width: 20,
+              )
+            ],
+          ),
+        ),
+        // actions: [
+        //   IconButton(
+        //     icon: Icon(Icons.more_vert),
+        //     onPressed: () {
+        //       // Additional options can be added here
+        //     },
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
@@ -187,55 +297,58 @@ class SentMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 5.0),
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.green[300],
-                    borderRadius: BorderRadius.circular(10.0),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(50, 0, 0, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 5.0),
+                    padding: EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.green[300],
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              date,
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12),
+                            ),
+                            Text(
+                              time,
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        message,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            date,
-                            style:
-                                TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            time,
-                            style:
-                                TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(width: 8),
-          CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(profilePicUrl),
-          ),
-        ],
+            SizedBox(width: 8),
+            CircleAvatar(
+              backgroundImage: CachedNetworkImageProvider(profilePicUrl),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -261,55 +374,58 @@ class ReceivedMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(profilePicUrl),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  sender,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 5.0),
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(message),
-                      SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            date,
-                            style:
-                                TextStyle(color: Colors.black54, fontSize: 12),
-                          ),
-                          Text(
-                            time,
-                            style:
-                                TextStyle(color: Colors.black54, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      child: Padding(
+        padding: EdgeInsets.only(right: 50),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundImage: CachedNetworkImageProvider(profilePicUrl),
             ),
-          ),
-        ],
+            SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sender,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 5.0),
+                    padding: EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(message),
+                        SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              date,
+                              style: TextStyle(
+                                  color: Colors.black54, fontSize: 12),
+                            ),
+                            Text(
+                              time,
+                              style: TextStyle(
+                                  color: Colors.black54, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

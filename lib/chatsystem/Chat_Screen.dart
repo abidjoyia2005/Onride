@@ -5,8 +5,14 @@ import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
 class Chat_Screen_Inbox extends StatefulWidget {
+  var to_profilepic;
+  var to_user_name;
+
   var to_user_id;
-  Chat_Screen_Inbox({this.to_user_id});
+  Chat_Screen_Inbox(
+      {required this.to_user_id,
+      required this.to_profilepic,
+      required this.to_user_name});
   @override
   _Chat_Screen_InboxState createState() => _Chat_Screen_InboxState();
 }
@@ -24,6 +30,14 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
     super.initState();
     _getUserInfo();
     _scrollToBottom();
+    _firestore
+        .collection('Inbox')
+        .doc(User_Id) // Use the passed value
+        .collection("Inbox")
+        .doc(widget.to_user_id) // Specify the user document
+        .set({
+      'unreadCount': 0,
+    }, SetOptions(merge: true));
   }
 
   Future<void> _getUserInfo() async {
@@ -38,10 +52,11 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
   }
 
   void _sendMessage() {
+    var chat_id = generateChatId(User_Id, widget.to_user_id);
     if (_controller.text.isNotEmpty && userEmail != null) {
       _firestore
           .collection('chats')
-          .doc("$User_Id ${widget.to_user_id}") // Use the passed value
+          .doc(chat_id) // Use the passed value
           .collection("chats")
           .add({
         'text': _controller.text,
@@ -49,7 +64,6 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         'profilePicUrl': userProfilePicUrl ?? 'default_profile_pic_url',
         'timestamp': FieldValue.serverTimestamp(),
       });
-      _controller.clear();
       _scrollToBottom();
     }
 
@@ -57,14 +71,15 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         .collection('Inbox')
         .doc(User_Id) // Use the passed value
         .collection("Inbox")
-        .doc(User_Id) // Specify the user document
+        .doc(widget.to_user_id) // Specify the user document
         .set({
-      'contactName': _controller.text,
-      'lastMessage': userEmail!,
-      'unreadCount': userProfilePicUrl ?? 'default_profile_pic_url',
+      'contactName': widget.to_user_name,
+      'lastMessage': _controller.text,
+      'unreadCount': 0,
       'time': FieldValue.serverTimestamp(),
+      'User_Profile_pic': widget.to_profilepic,
+      "User_Id": widget.to_user_id
     }, SetOptions(merge: true));
-    _controller.clear();
 
     _firestore
         .collection('Inbox')
@@ -72,10 +87,12 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         .collection("Inbox")
         .doc(User_Id) // Specify the user document
         .set({
-      'contactName': _controller.text,
-      'lastMessage': userEmail!,
-      'unreadCount': userProfilePicUrl ?? 'default_profile_pic_url',
+      'contactName': User_Name,
+      'lastMessage': _controller.text,
+      'unreadCount': FieldValue.increment(1),
       'time': FieldValue.serverTimestamp(),
+      'User_Profile_pic': User_Profile_Picture,
+      "User_Id": User_Id
     }, SetOptions(merge: true));
     _controller.clear();
   }
@@ -85,18 +102,51 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 3),
           curve: Curves.easeOut,
         );
       }
     });
   }
 
+  String generateChatId(String userId1, String userId2) {
+    // Ensure that the chat ID is generated consistently regardless of the order of the user IDs
+    if (userId1.compareTo(userId2) < 0) {
+      return '$userId1-$userId2';
+    } else {
+      return '$userId2-$userId1';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Group Chat'),
+        automaticallyImplyLeading: false,
+        title: Row(children: [
+          InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(Icons.arrow_back_rounded),
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          InkWell(
+            onTap: () {},
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(widget.to_profilepic),
+            ),
+          ),
+          SizedBox(
+            width: 7,
+          ),
+          Text(
+            widget.to_user_name,
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          )
+        ]),
         actions: [
           IconButton(
             icon: Icon(Icons.more_vert),
@@ -112,7 +162,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('chats')
-                  .doc("$User_Id ${widget.to_user_id}")
+                  .doc(generateChatId(User_Id, widget.to_user_id))
                   .collection("chats")
                   .orderBy('timestamp')
                   .snapshots(),
@@ -198,26 +248,29 @@ class SentMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5.0),
-        padding: EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Colors.green[300],
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              message,
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 5),
-            Text(
-              time,
-              style: TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
+      child: Padding(
+        padding: EdgeInsets.only(right: 20, left: 50),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 5.0),
+          padding: EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.green[300],
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                message,
+                style: TextStyle(color: Colors.white),
+              ),
+              SizedBox(height: 5),
+              Text(
+                time,
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -238,23 +291,26 @@ class ReceivedMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5.0),
-        padding: EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            SizedBox(height: 5),
-            Text(
-              time,
-              style: TextStyle(color: Colors.black54, fontSize: 12),
-            ),
-          ],
+      child: Padding(
+        padding: EdgeInsets.only(left: 20, right: 50),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 5.0),
+          padding: EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              SizedBox(height: 5),
+              Text(
+                time,
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
     );

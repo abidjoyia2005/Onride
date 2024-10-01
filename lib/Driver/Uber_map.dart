@@ -120,6 +120,7 @@ class _UberMapState extends State<UberMap> {
     super.initState();
     _loadMapStyle();
     _requestLocationPermission();
+    _getCurrentLocation();
     _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
       _getCurrentLocation(); // Get user's location
     });
@@ -562,13 +563,15 @@ class _UberMapState extends State<UberMap> {
 
           setState(() {
             _loadCustomMarker(
-                userDoc['Profile_Pic'] != null
-                    ? userDoc['Profile_Pic']
-                    : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
-                userDoc['username'],
-                userDoc['Description'] ?? "No has Location",
-                userDoc['latitude'],
-                userDoc['longitude']);
+              userDoc['Profile_Pic'] != null
+                  ? userDoc['Profile_Pic']
+                  : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
+              userDoc['username'],
+              userDoc['Description'] ?? "No has Location",
+              userDoc['latitude'],
+              userDoc['longitude'],
+              userDoc['User_Id'],
+            );
           });
         }
       }
@@ -717,8 +720,8 @@ class _UberMapState extends State<UberMap> {
   var preliti;
   var prelongi;
 
-  Future<void> _loadCustomMarker(
-      String image, String Name, String Des, double liti, double longi) async {
+  Future<void> _loadCustomMarker(String image, String Name, String Des,
+      double liti, double longi, String pointuserid) async {
     print("maker mak for $Name ");
 
     final Uint8List markerIcon = await _createCustomMarkerWithTail(
@@ -737,7 +740,20 @@ class _UberMapState extends State<UberMap> {
           markerId: MarkerId('$Name $liti $longi'),
           position: LatLng(liti, longi), // New position
           icon: BitmapDescriptor.fromBytes(markerIcon),
-          infoWindow: InfoWindow(onTap: () {}, snippet: Des, title: Name),
+          infoWindow: InfoWindow(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Chat_Screen_Inbox(
+                        to_user_name: Name,
+                        to_profilepic: image,
+                        to_user_id: pointuserid,
+                      ),
+                    ));
+              },
+              snippet: Des,
+              title: '$Name'),
         ),
       );
       preliti = liti;
@@ -885,13 +901,13 @@ class _UberMapState extends State<UberMap> {
               onTap: () {
                 if (Has_Driver_Acount) {
                   if (Has_From_To) {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DriverRides(),
                         ));
                   } else {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => WhichLocation(),
@@ -899,13 +915,13 @@ class _UberMapState extends State<UberMap> {
                   }
                 } else {
                   if (Has_From_To) {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DriverRides(),
                         ));
                   } else {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => FromtoPage(),
@@ -984,7 +1000,7 @@ class _UberMapState extends State<UberMap> {
                     ),
                   ],
                 ),
-                child: Image.asset("Assets/Images/consulting.gif"),
+                child: Image.asset("Assets/gifs/inbox.gif"),
               ),
             ),
           ),
@@ -1029,137 +1045,170 @@ class _UberMapState extends State<UberMap> {
                                       Padding(
                                         padding:
                                             EdgeInsets.fromLTRB(0, 10, 10, 0),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 15),
-                                            userDoc['Profile_Pic'] != null
-                                                ? CircleAvatar(
-                                                    radius: 20,
-                                                    backgroundImage:
-                                                        NetworkImage(userDoc[
-                                                            'Profile_Pic']),
-                                                  )
-                                                : CircleAvatar(
-                                                    radius: 20,
-                                                    backgroundImage: AssetImage(
-                                                        'Assets/Images/No_Dp.jpeg'),
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Chat_Screen_Inbox(
+                                                    to_user_name:
+                                                        userDoc['username'],
+                                                    to_profilepic:
+                                                        userDoc['Profile_Pic'],
+                                                    to_user_id:
+                                                        userDoc['User_Id'],
                                                   ),
-                                            SizedBox(width: 5),
-                                            InkWell(
-                                              onTap: () {
-                                                Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          Chat_Screen_Inbox(
-                                                        to_user_id:
-                                                            userDoc['User_Id'],
-                                                      ),
-                                                    ));
-                                              },
-                                              child: Text(
+                                                ));
+                                          },
+                                          child: Row(
+                                            children: [
+                                              SizedBox(width: 15),
+                                              userDoc['Profile_Pic'] != null
+                                                  ? Stack(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 20,
+                                                          backgroundImage:
+                                                              NetworkImage(userDoc[
+                                                                  'Profile_Pic']),
+                                                        ),
+                                                        Positioned(
+                                                          bottom: 0,
+                                                          right: 0,
+                                                          child: Container(
+                                                            width: 17,
+                                                            height: 17,
+                                                            child: Image.asset(
+                                                                "Assets/Images/send.png"),
+                                                          ),
+                                                        )
+                                                      ],
+                                                    )
+                                                  : Stack(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 20,
+                                                          backgroundImage:
+                                                              AssetImage(
+                                                                  'Assets/Images/No_Dp.jpeg'),
+                                                        ),
+                                                        Positioned(
+                                                          bottom: 0,
+                                                          right: 0,
+                                                          child: Container(
+                                                            width: 17,
+                                                            height: 17,
+                                                            child: Image.asset(
+                                                                "Assets/Images/send.png"),
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                              SizedBox(width: 5),
+                                              Text(
                                                 userDoc['username'].length > 15
                                                     ? '${userDoc['username'].substring(0, 13)}...'
                                                     : userDoc['username'],
                                                 style: TextStyle(fontSize: 12),
                                               ),
-                                            ),
-                                            Spacer(),
-                                            Timedef(userDoc['time'])
-                                                ? GestureDetector(
-                                                    onTap: () {
-                                                      Movecamra(
-                                                        userDoc['latitude'],
-                                                        userDoc['longitude'],
-                                                      );
-                                                    },
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons
-                                                              .location_history_outlined,
-                                                          color:
-                                                              Color(0xFF319AFF),
-                                                          size: 18,
-                                                        ),
-                                                        Text(
-                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                          style: TextStyle(
-                                                              color: Color(
-                                                                  0xFF319AFF),
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800),
-                                                        ),
-                                                      ],
+                                              Spacer(),
+                                              Timedef(userDoc['time'])
+                                                  ? GestureDetector(
+                                                      onTap: () {
+                                                        Movecamra(
+                                                          userDoc['latitude'],
+                                                          userDoc['longitude'],
+                                                        );
+                                                      },
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons
+                                                                .location_history_outlined,
+                                                            color: Color(
+                                                                0xFF319AFF),
+                                                            size: 18,
+                                                          ),
+                                                          Text(
+                                                            "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                            style: TextStyle(
+                                                                color: Color(
+                                                                    0xFF319AFF),
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : GestureDetector(
+                                                      onTap: () {
+                                                        Movecamra(
+                                                          userDoc['latitude'],
+                                                          userDoc['longitude'],
+                                                        );
+                                                      },
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons
+                                                                .location_history_outlined,
+                                                            color: Colors
+                                                                .grey[400],
+                                                            size: 18,
+                                                          ),
+                                                          Text(
+                                                            "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .grey[400],
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  )
-                                                : GestureDetector(
-                                                    onTap: () {
-                                                      Movecamra(
-                                                        userDoc['latitude'],
-                                                        userDoc['longitude'],
-                                                      );
-                                                    },
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons
-                                                              .location_history_outlined,
-                                                          color:
-                                                              Colors.grey[400],
-                                                          size: 18,
-                                                        ),
-                                                        Text(
-                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .grey[400],
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800),
-                                                        ),
-                                                      ],
+                                              Spacer(),
+                                              if (Timedef(userDoc['time']))
+                                                Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                      radius: 5,
                                                     ),
-                                                  ),
-                                            Spacer(),
-                                            if (Timedef(userDoc['time']))
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                    radius: 5,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(
-                                                    "Live",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600),
-                                                  ),
-                                                ],
-                                              )
-                                            else
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    backgroundColor:
-                                                        Colors.black54,
-                                                    radius: 5,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(
-                                                    "Offline",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600),
-                                                  ),
-                                                ],
-                                              )
-                                          ],
+                                                    SizedBox(width: 5),
+                                                    Text(
+                                                      "Live",
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
+                                                  ],
+                                                )
+                                              else
+                                                Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      backgroundColor:
+                                                          Colors.black54,
+                                                      radius: 5,
+                                                    ),
+                                                    SizedBox(width: 5),
+                                                    Text(
+                                                      "Offline",
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
+                                                  ],
+                                                )
+                                            ],
+                                          ),
                                         ),
                                       ),
                                   ],
