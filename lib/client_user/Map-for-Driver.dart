@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/AuthService/chat.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
@@ -305,7 +306,7 @@ class _DriverRidesState extends State<DriverRides> {
 
   @override
   void dispose() {
-    print("map dispose called...........");
+    print("map To From dispose called...........");
     _radarTimer
         ?.cancel(); // Cancel the radar animation when the widget is disposed
     super.dispose();
@@ -340,7 +341,7 @@ class _DriverRidesState extends State<DriverRides> {
 
       // Update the map with nearby users
 
-      print('map is refersh................');
+      print('map to from is refersh................');
       updateMapWithNearbyUsers(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
@@ -434,10 +435,12 @@ class _DriverRidesState extends State<DriverRides> {
     print('Grid id :${snapshot.docs}');
     if (snapshot.docs.isEmpty) {
       print("HAS NOT USER ON THIS ROUTER........");
-      setState(() {
-        _markers.clear();
-      });
+      // setState(() {
+      //   _markers.clear();
+      // });
     }
+    List<Map<String, dynamic>> allUsersData =
+        []; // Create a list to store all users
 
     for (var doc in snapshot.docs) {
       CollectionReference usersCollection = FirebaseFirestore.instance
@@ -456,14 +459,16 @@ class _DriverRidesState extends State<DriverRides> {
 
       for (var userDoc in usersSnapshot.docs) {
         print('users data:${userDoc.data()}');
+        // Add user data to the list
+        allUsersData.add(userDoc.data() as Map<String, dynamic>);
 
         var nowtime = DateTime.now();
         DateTime parsedTime = DateTime.parse(userDoc['time']);
         Duration difference = nowtime.difference(parsedTime);
 
-        setState(() {
-          _markers.clear();
-        });
+        // setState(() {
+        //   _markers.clear();
+        // });
         print("Second deferance is ${difference} for  ${userDoc['username']}");
 
         if (difference.inSeconds < 20) {
@@ -482,6 +487,18 @@ class _DriverRidesState extends State<DriverRides> {
         }
       }
     }
+    // Now BottomSheetData contains all users
+    setState(() {
+      BottomSheetData =
+          sortUsersByTime(allUsersData); // Store accumulated users data
+    });
+  }
+
+  List<Map<String, dynamic>> sortUsersByTime(
+      List<Map<String, dynamic>> usersData) {
+    // Sort the list based on 'parsedTime', with most recent at the top
+    usersData.sort((a, b) => b['time'].compareTo(a['time']));
+    return usersData; // Return the sorted list
   }
 
   DateTime parseTimestamp(String timestamp) {
@@ -499,6 +516,8 @@ class _DriverRidesState extends State<DriverRides> {
     return DateTime.fromMillisecondsSinceEpoch(milliseconds, isUtc: true);
   }
 
+  var preliti;
+  var prelongi;
   Future<void> _loadCustomMarker(
       String image, String Name, String Des, double liti, double longi) async {
     print("maker mak for $Name ");
@@ -509,6 +528,9 @@ class _DriverRidesState extends State<DriverRides> {
     );
 
     setState(() {
+      // Remove the existing marker with the same MarkerId
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
       _markers.add(
         Marker(
           markerId: MarkerId('$Name $liti $longi'),
@@ -517,6 +539,8 @@ class _DriverRidesState extends State<DriverRides> {
           infoWindow: InfoWindow(onTap: () {}, snippet: Des, title: Name),
         ),
       );
+      preliti = liti;
+      prelongi = longi;
     });
   }
 
@@ -629,7 +653,7 @@ class _DriverRidesState extends State<DriverRides> {
                 child: Container(
                     width: 150,
                     height: 150,
-                    child: Image.asset("Assets/Images/send.png"))),
+                    child: Image.asset("Assets/Images/consulting.gif"))),
             title: Text(
               "Describe where you're going or the destination.",
               style: TextStyle(
@@ -837,7 +861,12 @@ class _DriverRidesState extends State<DriverRides> {
               width: 50,
               child: InkWell(
                 onTap: () {
-                  // Move the camera to the current location
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GroupFromTo(
+                                hasFromTo: "$From $To",
+                              )));
                 },
                 child: Container(
                   child: Icon(Icons.chat),
@@ -882,7 +911,7 @@ class _DriverRidesState extends State<DriverRides> {
                           child: BottomSheetData != null
                               ? Column(
                                   children: [
-                                    for (var userDoc in BottomSheetData.docs)
+                                    for (var userDoc in BottomSheetData)
                                       Padding(
                                         padding:
                                             EdgeInsets.fromLTRB(0, 10, 10, 0),
@@ -902,7 +931,12 @@ class _DriverRidesState extends State<DriverRides> {
                                                         'Assets/Images/No_Dp.jpeg'),
                                                   ),
                                             SizedBox(width: 5),
-                                            Text(userDoc['username']),
+                                            Text(
+                                              userDoc['username'].length > 15
+                                                  ? '${userDoc['username'].substring(0, 13)}...'
+                                                  : userDoc['username'],
+                                              style: TextStyle(fontSize: 12),
+                                            ),
                                             Spacer(),
                                             Timedef(userDoc['time'])
                                                 ? GestureDetector(

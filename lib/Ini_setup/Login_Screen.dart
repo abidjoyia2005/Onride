@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
@@ -78,6 +79,78 @@ class _LoginScreen extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void CreateDocumentFirebaseForGoogle(
+      context, String userId, String userName, String profpic) async {
+    print("Checking if document exists for user: $userName");
+
+    CollectionReference chatCollection =
+        FirebaseFirestore.instance.collection('User_Data');
+
+    DocumentSnapshot docSnapshot = await chatCollection.doc(userId).get();
+
+    if (!docSnapshot.exists) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      User_Profile_Picture = profpic;
+      prefs.setString("Profile_Picture", User_Profile_Picture);
+      setState(() {});
+
+      // If document does not exist, create it
+      await chatCollection.doc(userId).set({
+        'User_Name': userName,
+        'CompleteProfile': false,
+        'Driver_Acount': false,
+        'Profile_Pic': profpic
+      }).then((value) {
+        print("User document created successfully.");
+      }).catchError((error) {
+        print("Failed to create user document: $error");
+      });
+      setState(() {
+        isLoading = false;
+      });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => GifWithBlur()),
+      );
+    } else {
+      // If the document exists, retrieve the data
+      print("Document for user already exists.");
+      Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+
+      print("login user data :$data");
+      String userName = data['User_Name'] ?? 'No Name';
+      User_Name = userName;
+      Has_Driver_Acount = data['Driver_Acount'] ?? false;
+
+      Vicale_Type = data['Vicale_Type'] ?? "null";
+      Has_From_To = data['Has_From_To'] ?? false;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("User_Name", userName);
+      prefs.setBool("Has_Driver_Acount", Has_Driver_Acount);
+      prefs.setBool("Has_From_To", Has_From_To);
+      prefs.setString("Vicale_Type", Vicale_Type);
+      User_Profile_Picture = data['Profile_Pic'] ?? "null";
+
+      if (Has_Driver_Acount) {
+        User_Profile_Picture = Vicale_Type;
+        prefs.setString("Profile_Picture", Vicale_Type);
+      } else {
+        User_Profile_Picture = data['Profile_Pic'] ?? "null";
+        prefs.setString("Profile_Picture", User_Profile_Picture);
+      }
+      setState(() {
+        isLoading = false;
+      });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => UberMap(), maintainState: false),
+      );
+    }
   }
 
   @override
@@ -276,7 +349,41 @@ class _LoginScreen extends State<LoginScreen> {
                     child: SignInButton(
                       Buttons.Google, // Use the pre-built Google button
                       text: "Continue with Google",
-                      onPressed: () {},
+                      onPressed: () async {
+                        AuthService _authService = AuthService();
+                        User? user = await _authService.signInWithGoogle();
+                        if (user != null) {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          print(
+                              "Google Sign-In Successful. User ID: ${user.uid}");
+                          User_Id = user.uid;
+                          final SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          prefs.setBool("userLogIn", true);
+                          prefs.setString("UserId", User_Id);
+                          prefs.setString(
+                              "User_Name", user.displayName ?? "UnKnown");
+                          CreateDocumentFirebaseForGoogle(
+                              context,
+                              User_Id,
+                              user.displayName ?? "UnKnown",
+                              user.photoURL ?? "null");
+                          User_Name = user.displayName ?? "UnKnown";
+                        } else {
+                          setState(() {
+                            isLoading = false;
+                          });
+                          print("Google Sign-In Cancelled or Failed");
+                        }
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => SignupScreen(),
+                        //   ),
+                        // );
+                      },
                     ),
                   ),
                   SizedBox(

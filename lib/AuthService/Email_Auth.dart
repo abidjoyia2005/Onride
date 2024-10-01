@@ -30,7 +30,7 @@ class AuthService {
   //  final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Sign in with Google
+  /// Sign in with Google
   Future<User?> signInWithGoogle() async {
     try {
       // Trigger the Google authentication flow
@@ -53,7 +53,21 @@ class AuthService {
       // Sign in to Firebase with the Google credentials
       UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-      return userCredential.user;
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // Get the user details
+        String uid = user.uid;
+        String? displayName = user.displayName;
+        String? photoURL = user.photoURL;
+
+        // Print the details
+        print("User UID: $uid");
+        print("Username: $displayName");
+        print("Profile Picture URL: $photoURL");
+      }
+
+      return user;
     } catch (e) {
       print(e.toString());
       return null;
@@ -72,6 +86,10 @@ class AuthService {
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  User? getCurrentUser() {
+    return _auth.currentUser;
   }
 
   // Sign up with email and password and get UID

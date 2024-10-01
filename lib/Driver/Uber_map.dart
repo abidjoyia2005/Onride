@@ -10,6 +10,8 @@ import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:flutter_application_1/Driver/profile_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Splash_Screen.dart';
+import 'package:flutter_application_1/chatsystem/Chat_Screen.dart';
+import 'package:flutter_application_1/chatsystem/Inbox_Screen.dart';
 import 'package:flutter_application_1/client_user/FromTo.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:flutter_application_1/client_user/Selected_driver.dart';
@@ -354,6 +356,8 @@ class _UberMapState extends State<UberMap> {
 
   // Method to fetch user location
   Future<void> _getCurrentLocation() async {
+    print(
+        'get Curent location is called ...........................................................................');
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -474,7 +478,8 @@ class _UberMapState extends State<UberMap> {
       "time": DateTime.now().toString(),
       'latitude': latitude,
       'longitude': longitude,
-      'Description': Descraption.text
+      'Description': Descraption.text,
+      'User_Id': User_Id
     };
 
     // Save or update the user's location in Firestore
@@ -525,9 +530,9 @@ class _UberMapState extends State<UberMap> {
         .get();
 
     print('Grid id :${snapshot.docs}');
-    setState(() {
-      _markers.clear();
-    });
+    // setState(() {
+    //   _markers.clear();
+    // });
 
     List<Map<String, dynamic>> allUsersData =
         []; // Create a list to store all users
@@ -590,12 +595,13 @@ class _UberMapState extends State<UberMap> {
       builder: (BuildContext context) {
         return SingleChildScrollView(
           child: AlertDialog(
+            backgroundColor: Colors.white,
             icon: Padding(
                 padding: EdgeInsets.all(10),
                 child: Container(
                     width: 150,
                     height: 150,
-                    child: Image.asset("Assets/Images/send.png"))),
+                    child: Image.asset("Assets/Images/consulting.gif"))),
             title: Text(
               "Describe where you're going or the destination.",
               style: TextStyle(
@@ -708,6 +714,9 @@ class _UberMapState extends State<UberMap> {
     return DateTime.fromMillisecondsSinceEpoch(milliseconds, isUtc: true);
   }
 
+  var preliti;
+  var prelongi;
+
   Future<void> _loadCustomMarker(
       String image, String Name, String Des, double liti, double longi) async {
     print("maker mak for $Name ");
@@ -718,36 +727,21 @@ class _UberMapState extends State<UberMap> {
     );
 
     setState(() {
+      // Remove the existing marker with the same MarkerId
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+
+      // Add the updated marker with the new position and other details
       _markers.add(
         Marker(
           markerId: MarkerId('$Name $liti $longi'),
-          position: LatLng(liti, longi), // Your desired position
+          position: LatLng(liti, longi), // New position
           icon: BitmapDescriptor.fromBytes(markerIcon),
-          infoWindow: InfoWindow(
-              onTap: () {
-                // // Show the alert dialog
-                // showDialog(
-                //   context: context,
-                //   builder: (BuildContext context) {
-                //     return AlertDialog(
-                //       contentPadding: EdgeInsets.zero, // Remove default padding
-                //       content: SingleChildScrollView(
-                //         child: RideWidget(
-                //           fromPlace: "mianwali",
-                //           toPlace: "islamabad",
-                //           rideStatus: "good",
-                //           dateTime: DateTime.now(),
-                //           fare: "1500", // Example fare
-                //         ),
-                //       ),
-                //     );
-                //   },
-                // );
-              },
-              snippet: Des,
-              title: Name),
+          infoWindow: InfoWindow(onTap: () {}, snippet: Des, title: Name),
         ),
       );
+      preliti = liti;
+      prelongi = longi;
     });
   }
 
@@ -964,6 +958,36 @@ class _UberMapState extends State<UberMap> {
               ),
             ),
           ),
+          Positioned(
+            right: 12,
+            top: 160,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Inbox_Screen(),
+                    ));
+              },
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5), // Shadow color
+                      spreadRadius: 1, // How wide the shadow spreads
+                      blurRadius: 3, // Softness of the shadow
+                      offset: Offset(0, 2), // Positioning of the shadow
+                    ),
+                  ],
+                ),
+                child: Image.asset("Assets/Images/consulting.gif"),
+              ),
+            ),
+          ),
           DraggableScrollableSheet(
             initialChildSize:
                 0.1, // Show only 1 row initially (10% of the screen)
@@ -1021,7 +1045,25 @@ class _UberMapState extends State<UberMap> {
                                                         'Assets/Images/No_Dp.jpeg'),
                                                   ),
                                             SizedBox(width: 5),
-                                            Text(userDoc['username']),
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          Chat_Screen_Inbox(
+                                                        to_user_id:
+                                                            userDoc['User_Id'],
+                                                      ),
+                                                    ));
+                                              },
+                                              child: Text(
+                                                userDoc['username'].length > 15
+                                                    ? '${userDoc['username'].substring(0, 13)}...'
+                                                    : userDoc['username'],
+                                                style: TextStyle(fontSize: 12),
+                                              ),
+                                            ),
                                             Spacer(),
                                             Timedef(userDoc['time'])
                                                 ? GestureDetector(
@@ -1199,8 +1241,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Pick an image'),
-          content: Text('Choose a source'),
+          // title: Text('Pick an image'),
+          content: Text(
+            'Choose a source',
+            style: TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w500, fontFamily: "Lemon"),
+          ),
           actions: <Widget>[
             Container(
               child: Column(
@@ -1721,6 +1767,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               AuthService authService = AuthService();
 
               await authService.signOut();
+              await authService.signOutGoogle();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => SplashScreen()),
@@ -1965,6 +2012,74 @@ class ModernTikTokDrawer extends StatelessWidget {
     );
   }
 }
+
+
+// Stream<void> getUsersInAreaStream(double lat1, double lng1, double lat2, double lng2) async* {
+//   String startGridCell = getGridCell(lat1, lng1);
+//   String endGridCell = getGridCell(lat2, lng2);
+//   print("start :$startGridCell   end:$endGridCell");
+
+//   FirebaseFirestore.instance
+//       .collection('grid_cells')
+//       .where(FieldPath.documentId, isGreaterThanOrEqualTo: startGridCell)
+//       .where(FieldPath.documentId, isLessThanOrEqualTo: endGridCell)
+//       .snapshots() // Using snapshots for real-time streaming
+//       .listen((QuerySnapshot snapshot) async {
+//         print('Grid id :${snapshot.docs}');
+        
+//         // Clear markers before adding new ones
+//         setState(() {
+//           _markers.clear();
+//         });
+
+//         List<Map<String, dynamic>> allUsersData = []; // Create a list to store all users
+
+//         // Iterate over the documents in the query snapshot
+//         for (var doc in snapshot.docs) {
+//           CollectionReference usersCollection = FirebaseFirestore.instance
+//               .collection('grid_cells')
+//               .doc(doc.id)
+//               .collection('users');
+
+//           // Listen to real-time updates in the users sub-collection
+//           usersCollection.snapshots().listen((QuerySnapshot usersSnapshot) {
+//             for (var userDoc in usersSnapshot.docs) {
+//               print('users data: ${userDoc.data()}');
+
+//               // Add user data to the list
+//               allUsersData.add(userDoc.data() as Map<String, dynamic>);
+
+//               var nowtime = DateTime.now();
+//               DateTime parsedTime = DateTime.parse(userDoc['time']);
+//               Duration difference = nowtime.difference(parsedTime);
+
+//               print("Second difference is ${difference} for ${userDoc['username']}");
+
+//               // Only display users updated within the last 20 seconds
+//               if (difference.inSeconds < 20) {
+//                 print("User name is ${userDoc['username']}");
+
+//                 setState(() {
+//                   _loadCustomMarker(
+//                       userDoc['Profile_Pic'] != null
+//                           ? userDoc['Profile_Pic']
+//                           : "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648",
+//                       userDoc['username'],
+//                       userDoc['Description'] ?? "No has Location",
+//                       userDoc['latitude'],
+//                       userDoc['longitude']);
+//                 });
+//               }
+//             }
+
+//             // Update BottomSheetData with all the users collected
+//             setState(() {
+//               BottomSheetData = sortUsersByTime(allUsersData); // Store accumulated users data
+//             });
+//           });
+//         }
+//       });
+// }
 
 
 
