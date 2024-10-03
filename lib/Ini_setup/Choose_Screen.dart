@@ -101,7 +101,7 @@ class GifWithBlur extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      Colors.deepOrangeAccent, // Primary color for the button
+                      const Color(0xFFFF6E40), // Primary color for the button
                   padding: EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
@@ -132,7 +132,7 @@ class GifWithBlur extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      Colors.lightBlue, // Primary color for the button
+                      const Color(0xFF03A9F4), // Primary color for the button
                   padding: EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),

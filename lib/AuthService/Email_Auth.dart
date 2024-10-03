@@ -11,6 +11,7 @@ var Has_From_To;
 var To;
 var From;
 var Vicale_Type;
+var FCMToken;
 
 var _textH1 = TextStyle(
     fontFamily: "Sofia",

@@ -7,7 +7,6 @@ import 'package:intl/intl.dart'; // For formatting timestamps
 class Chat_Screen_Inbox extends StatefulWidget {
   var to_profilepic;
   var to_user_name;
-
   var to_user_id;
   Chat_Screen_Inbox(
       {required this.to_user_id,
@@ -51,8 +50,35 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
     }
   }
 
+  var To_User_FCMToken;
+  Future<void> GetFCMTokenfromDataBase(String userIdForGetToken) async {
+    // Fetch the document snapshot from Firestore
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('User_Data')
+        .doc(userIdForGetToken)
+        .get();
+
+    if (userDoc.exists) {
+      // Retrieve the FCM token from the document
+      String? fcmToken = userDoc.get('FCMToken');
+      print("FCM Token from Firestore: $fcmToken");
+
+      setState(() {
+        To_User_FCMToken = fcmToken;
+      });
+    } else {
+      setState(() {
+        To_User_FCMToken = null;
+      });
+    }
+
+    // / Return null if the document does not exist or has no data
+  }
+
   void _sendMessage() {
     var chat_id = generateChatId(User_Id, widget.to_user_id);
+    GetFCMTokenfromDataBase(widget.to_user_id);
+
     if (_controller.text.isNotEmpty && userEmail != null) {
       _firestore
           .collection('chats')
@@ -95,6 +121,9 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       "User_Id": User_Id
     }, SetOptions(merge: true));
     _controller.clear();
+    Future.delayed(Duration(seconds: 1), () {
+      print("To User Token l:$To_User_FCMToken");
+    });
   }
 
   void _scrollToBottom() {
@@ -208,23 +237,41 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: TextFormField(
                     controller: _controller,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: 'Send a message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
                       filled: true,
-                      fillColor: Colors.grey[200],
+                      labelText: 'Message',
+                      labelStyle: TextStyle(fontSize: 16),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: Icon(Icons.send, color: Colors.blue),
                   onPressed: _sendMessage,
                 ),
+                // InkWell(
+                //   onTap: _sendMessage,
+                //   child: Container(
+                //     height: 40,
+                //     width: 40,
+                //     child: Image.asset('Assets/Images/send.png'),
+                //   ),
+                // )
               ],
             ),
           ),

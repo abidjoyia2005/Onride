@@ -28,6 +28,14 @@ class _SignupScreen extends State<SignupScreen> {
   GlobalKey<FormState> _key = GlobalKey();
   final AuthService _authService = AuthService();
   var FirebaseToken;
+  Future<void> saveTokenToDatabase() async {
+    // Save token along with userId in Firestore or any backend service
+    await FirebaseFirestore.instance
+        .collection('User_Data')
+        .doc(User_Id)
+        .set({'FCMToken': FCMToken}, SetOptions(merge: true));
+  }
+
   void _getToken() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -67,7 +75,7 @@ class _SignupScreen extends State<SignupScreen> {
         .doc(User_id)
         .set({
           'User_Name': User_name,
-          // 'FCMToken': Token,
+          'FCMToken': FCMToken,
           'CompleteProfile': false,
           'Driver_Acount': false
         })
@@ -98,7 +106,8 @@ class _SignupScreen extends State<SignupScreen> {
         'User_Name': userName,
         'CompleteProfile': false,
         'Driver_Acount': false,
-        'Profile_Pic': profpic
+        'Profile_Pic': profpic,
+        'FCMToken': FCMToken
       }).then((value) {
         print("User document created successfully.");
       }).catchError((error) {
@@ -113,6 +122,7 @@ class _SignupScreen extends State<SignupScreen> {
         MaterialPageRoute(builder: (context) => GifWithBlur()),
       );
     } else {
+      saveTokenToDatabase();
       // If the document exists, retrieve the data
       print("Document for user already exists.");
       Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
@@ -324,7 +334,10 @@ class _SignupScreen extends State<SignupScreen> {
                           prefs.setBool("userLogIn", true);
                           prefs.setString("UserId", User_Id);
                           prefs.setString("User_Name", _nameController.text);
+                          setState(() {});
+
                           CreateDocumentFirebase(User_Id, _nameController.text);
+
                           User_Name = _nameController.text;
 
                           setState(() {

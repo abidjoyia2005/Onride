@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -5,8 +6,14 @@ import 'package:flutter_application_1/Driver/profile_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Choose_Screen.dart';
 import 'package:flutter_application_1/Ini_setup/Forgot_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Splash_Screen.dart';
+import 'package:flutter_application_1/chatsystem/Flutter_Locail_Notification.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:logging/logging.dart';
+
+Future<void> backgroundHandler(RemoteMessage message) async {
+  print(message.data.toString());
+  print(message.notification!.title);
+}
 
 void main() async {
   Logger.root.level = Level.WARNING; // Set logging level to WARNING or higher
@@ -15,6 +22,10 @@ void main() async {
   });
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+  LocalNotificationService.initialize();
+  await FirebaseMessaging.instance.requestPermission();
+
   runApp(const MyApp());
 }
 

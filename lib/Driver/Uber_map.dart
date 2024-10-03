@@ -11,6 +11,7 @@ import 'package:flutter_application_1/Driver/Choice_Device.dart';
 import 'package:flutter_application_1/Driver/profile_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Splash_Screen.dart';
 import 'package:flutter_application_1/chatsystem/Chat_Screen.dart';
+import 'package:flutter_application_1/chatsystem/Flutter_Locail_Notification.dart';
 import 'package:flutter_application_1/chatsystem/Inbox_Screen.dart';
 import 'package:flutter_application_1/client_user/FromTo.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
@@ -110,7 +111,7 @@ class _UberMapState extends State<UberMap> {
       case PermissionStatus.permanentlyDenied:
         return Colors.orange;
       default:
-        return Colors.white10;
+        return Colors.transparent;
     }
   }
 
@@ -122,10 +123,70 @@ class _UberMapState extends State<UberMap> {
     _requestLocationPermission();
     _getCurrentLocation();
     _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
-      _getCurrentLocation(); // Get user's location
+      _getCurrentLocation();
     });
 
-    _startRadarAnimation(); // Start radar animation
+    _startRadarAnimation();
+
+    // 1. This method call when app in terminated state and you get a notification
+    // when you click on notification app open from terminated state and you can get notification data in this method
+
+    FirebaseMessaging.instance.getInitialMessage().then(
+      (message) {
+        print("FirebaseMessaging.instance.getInitialMessage");
+        if (message != null) {
+          print("New Notification");
+          if (message.data['_id'] != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Inbox_Screen(),
+              ),
+            );
+          }
+        }
+      },
+    );
+
+    // 2. This method only call when App in forground it mean app must be opened
+    FirebaseMessaging.onMessage.listen(
+      (message) {
+        print("FirebaseMessaging.onMessage.listen");
+
+        if (message.notification != null) {
+          print(message.notification!.title);
+          print(message.notification!.body);
+          print("message.data11 ${message.data}");
+          if (message.data['_id'] == "1") {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Inbox_Screen(),
+              ),
+            );
+          }
+          LocalNotificationService.createanddisplaynotification(message);
+        }
+      },
+    );
+
+    // 3. This method only call when App in background and not terminated(not closed)
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (message) {
+        print("FirebaseMessaging.onMessageOpenedApp.listen");
+        if (message.notification != null) {
+          print(message.notification!.title);
+          print(message.notification!.body);
+          print("message.data22 ${message.data['_id']}");
+          LocalNotificationService.createanddisplaynotification(message);
+          if (message.data['_id'] == "1") {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Inbox_Screen(),
+              ),
+            );
+          }
+        }
+      },
+    );
   }
 
   String? _jsonData = '''
@@ -358,7 +419,7 @@ class _UberMapState extends State<UberMap> {
   // Method to fetch user location
   Future<void> _getCurrentLocation() async {
     print(
-        'get Curent location is called ...........................................................................');
+        'get Curent location is called ...........................................................................In Radar');
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -397,7 +458,7 @@ class _UberMapState extends State<UberMap> {
           CameraPosition(
             target:
                 LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            zoom: 12.0,
+            zoom: 11.5,
           ),
         ),
       );
@@ -430,13 +491,13 @@ class _UberMapState extends State<UberMap> {
 
         if (_currentPosition != null) {
           _radarCircle = Circle(
-            circleId: CircleId("radar_circle"),
-            center:
-                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            radius: _currentRadius,
-            fillColor: Colors.blue.withOpacity(0.2),
-            strokeWidth: 0,
-          );
+              circleId: CircleId("radar_circle"),
+              center: LatLng(
+                  _currentPosition!.latitude, _currentPosition!.longitude),
+              radius: _currentRadius,
+              fillColor: Colors.blue.withOpacity(0.15),
+              strokeWidth: 1,
+              strokeColor: Colors.lightBlue);
         }
       });
     });
@@ -859,6 +920,8 @@ class _UberMapState extends State<UberMap> {
                   ),
                   myLocationEnabled: true, // Enable to show the user's location
                   myLocationButtonEnabled: true,
+                  trafficEnabled: true,
+
                   onMapCreated: (GoogleMapController controller) {
                     _controller.complete(controller);
                     _mapController = controller;
@@ -870,7 +933,7 @@ class _UberMapState extends State<UberMap> {
                               _currentPosition!.latitude,
                               _currentPosition!.longitude,
                             ),
-                            zoom: 8.2,
+                            zoom: 9,
                           ),
                         ),
                       );
@@ -1769,29 +1832,37 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         ],
                       ),
                     ),
+          Drawer_Widget(
+            title: "Live Map",
+          ),
+          _buildListTile(
+            context,
+            isSelected: false,
+            icon: CupertinoIcons.antenna_radiowaves_left_right,
+            title: 'Live Map',
+            onTap: () {},
+          ),
+          if (Has_From_To)
+            _buildListTile(
+              context,
+              isSelected: false,
+              icon: CupertinoIcons.home,
+              title: '$From To $To',
+              onTap: () {},
+            ),
           _buildListTile(
             context,
             isSelected: false,
             icon: CupertinoIcons.home,
-            title: 'Home',
+            title: 'Pointer Message',
             onTap: () {},
           ),
           _buildListTile(
             context,
             icon: Icons.abc,
-            title: 'Orders',
+            title: 'Inbox',
             isSelected: false,
             onTap: () {},
-          ),
-          Visibility(
-            visible: false,
-            child: _buildListTile(
-              context,
-              icon: Icons.account_balance_wallet_sharp,
-              title: 'Wallet',
-              isSelected: false,
-              onTap: () {},
-            ),
           ),
           _buildListTile(
             isSelected: false,
@@ -1805,6 +1876,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
             context,
             icon: Icons.privacy_tip,
             title: 'Privacy policy',
+            onTap: () {},
+          ),
+          _buildListTile(
+            isSelected: false,
+            context,
+            icon: Icons.privacy_tip,
+            title: 'About',
+            onTap: () {},
+          ),
+          _buildListTile(
+            isSelected: false,
+            context,
+            icon: Icons.delete,
+            title: 'Delete Account',
             onTap: () {},
           ),
           _buildListTile(
@@ -2058,6 +2143,52 @@ class ModernTikTokDrawer extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+}
+
+class Drawer_Widget extends StatelessWidget {
+  var title;
+
+  Drawer_Widget({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 45,
+      decoration: BoxDecoration(
+          // color: Colors.black,
+          border: Border(bottom: BorderSide(color: Colors.grey)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+          ),
+          Icon(Icons.radar),
+          SizedBox(
+            width: 10,
+          ),
+          Text(
+            title,
+            style: TextStyle(
+                color: Colors.blueGrey,
+                fontSize: 18,
+                fontFamily: "lemon",
+                fontWeight: FontWeight.w600),
+          ),
+          Spacer(),
+          Icon(
+            Icons.arrow_forward_rounded,
+            size: 30,
+            color: Colors.blueGrey,
+          ),
+          SizedBox(
+            width: 20,
+          )
+        ],
+      ),
     );
   }
 }

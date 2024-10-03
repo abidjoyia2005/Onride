@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
@@ -27,6 +28,16 @@ class _SplashScreenState extends State<SplashScreen> {
     print("Username :$User_Name, user id :$User_Id");
   }
 
+  void getToken() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // Get the token
+    String? token = await messaging.getToken();
+    print("Firebase Token: $token");
+    FCMToken = token;
+    setState(() {});
+  }
+
   bool user = false;
 
   Future<void> CheckUserLogin() async {
@@ -38,6 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    getToken();
     CheckUserLogin();
     Refresh_Data();
 
@@ -61,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-          Colors.white, // White background like Instagram's splash screen
+          Color(0xFFD9D9D9), // White background like Instagram's splash screen
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -72,16 +84,12 @@ class _SplashScreenState extends State<SplashScreen> {
             //   width: 120.0, // Set the logo size
             //   height: 120.0,
             // ),
-            SizedBox(height: 20.0),
+
             // Text like Instagram or your app's name
-            Text(
-              'Live TTrans pot',
-              style: TextStyle(
-                fontSize: 30.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            Container(
+                width: 300,
+                height: 300,
+                child: Image.asset("Assets/Images/OnRide.png"))
           ],
         ),
       ),

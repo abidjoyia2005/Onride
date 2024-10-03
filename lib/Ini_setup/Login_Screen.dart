@@ -23,6 +23,14 @@ class _LoginScreen extends State<LoginScreen> {
   AutovalidateMode _validate = AutovalidateMode.disabled;
   GlobalKey<FormState> _key = GlobalKey();
 
+  Future<void> saveTokenToDatabase() async {
+    // Save token along with userId in Firestore or any backend service
+    await FirebaseFirestore.instance
+        .collection('User_Data')
+        .doc(User_Id)
+        .set({'FCMToken': FCMToken}, SetOptions(merge: true));
+  }
+
   void GetDataForLogin(String User_id) async {
     CollectionReference chatCollection =
         FirebaseFirestore.instance.collection('User_Data');
@@ -33,6 +41,7 @@ class _LoginScreen extends State<LoginScreen> {
           await chatCollection.doc(User_id).get();
 
       if (documentSnapshot.exists) {
+        saveTokenToDatabase();
         // Extract the 'name' field from the document
         var data = documentSnapshot.data() as Map<String, dynamic>;
         print("login user data :$data");
@@ -101,7 +110,8 @@ class _LoginScreen extends State<LoginScreen> {
         'User_Name': userName,
         'CompleteProfile': false,
         'Driver_Acount': false,
-        'Profile_Pic': profpic
+        'Profile_Pic': profpic,
+        'FCMToken': FCMToken
       }).then((value) {
         print("User document created successfully.");
       }).catchError((error) {
@@ -116,6 +126,7 @@ class _LoginScreen extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => GifWithBlur()),
       );
     } else {
+      saveTokenToDatabase();
       // If the document exists, retrieve the data
       print("Document for user already exists.");
       Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
