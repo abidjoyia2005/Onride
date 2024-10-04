@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/AuthService/Notification.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
 class Chat_Screen_Inbox extends StatefulWidget {
@@ -66,6 +67,10 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       setState(() {
         To_User_FCMToken = fcmToken;
       });
+      if (FCMToken != To_User_FCMToken) {
+        SendNotificationto(_controller.text);
+      }
+      _controller.clear();
     } else {
       setState(() {
         To_User_FCMToken = null;
@@ -120,10 +125,17 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       'User_Profile_pic': User_Profile_Picture,
       "User_Id": User_Id
     }, SetOptions(merge: true));
-    _controller.clear();
-    Future.delayed(Duration(seconds: 1), () {
-      print("To User Token l:$To_User_FCMToken");
-    });
+
+    print("To User Token l:$To_User_FCMToken");
+  }
+
+  Future<void> SendNotificationto(String Mess) async {
+    await NotificationService.sendNotificationToSelectedDevice(
+        ' $User_Name Send a Message',
+        Mess,
+        User_Profile_Picture,
+        1,
+        To_User_FCMToken);
   }
 
   void _scrollToBottom() {
@@ -211,7 +223,8 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
                     final messageText = message['text'];
                     final timestamp = message['timestamp'] as Timestamp?;
                     final time = timestamp != null
-                        ? DateFormat('hh:mm a').format(timestamp.toDate())
+                        ? DateFormat('dd/mm/yyyy      hh:mm a')
+                            .format(timestamp.toDate())
                         : 'N/A'; // Format the timestamp to a readable time string
 
                     if (isCurrentUser) {

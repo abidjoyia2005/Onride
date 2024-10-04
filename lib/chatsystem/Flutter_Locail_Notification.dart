@@ -52,7 +52,7 @@ class LocalNotificationService {
         message.notification!.title,
         message.notification!.body,
         notificationDetails,
-        payload: message.data['_id'],
+        payload: message.data['id'],
       );
     } on Exception catch (e) {
       print('trefd:  $e');

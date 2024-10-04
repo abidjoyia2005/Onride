@@ -51,15 +51,17 @@ class _DriverRidesState extends State<DriverRides> {
   Future<void> _requestLocationPermission() async {
     final status = await Permission.location.request();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _getPermissionStatusMessage(status),
-          style: TextStyle(color: Colors.white),
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _getPermissionStatusMessage(status),
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: _getSnackbarColor(status),
         ),
-        backgroundColor: _getSnackbarColor(status),
-      ),
-    );
+      );
+    }
   }
 
   String _getPermissionStatusMessage(PermissionStatus status) {
@@ -96,6 +98,7 @@ class _DriverRidesState extends State<DriverRides> {
   void initState() {
     super.initState();
     _loadMapStyle();
+
     _requestLocationPermission();
     _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
       _getCurrentLocation(); // Get user's location
@@ -531,6 +534,15 @@ class _DriverRidesState extends State<DriverRides> {
       // Remove the existing marker with the same MarkerId
       _markers.removeWhere(
           (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
       _markers.add(
         Marker(
           markerId: MarkerId('$Name $liti $longi'),
@@ -845,7 +857,7 @@ class _DriverRidesState extends State<DriverRides> {
                     ),
                   ],
                 ),
-                child: Image.asset("Assets/gifs/inbox.gif"),
+                child: Image.asset("Assets/gifs/group.gif"),
               ),
             ),
           ),
@@ -1136,6 +1148,33 @@ class SelectedFromTo extends StatefulWidget {
 }
 
 class _SelectedFromToState extends State<SelectedFromTo> {
+// Function to remove a token from the array
+  void removeTokenFromFirebase(String tokenToRemove) async {
+    // Create a Firestore instance
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Reference to the collection and document
+    DocumentReference harnoliDocument =
+        firestore.collection('Vicahle').doc('$From $To');
+
+    try {
+      // Check if the document exists
+      DocumentSnapshot docSnapshot = await harnoliDocument.get();
+
+      if (docSnapshot.exists) {
+        // If the document exists, remove the token from the 'tokens' array
+        await harnoliDocument.update({
+          'tokens': FieldValue.arrayRemove([tokenToRemove]),
+        });
+        print('Token removed successfully.');
+      } else {
+        print('Document does not exist. No token to remove.');
+      }
+    } catch (e) {
+      print('Error removing token: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1252,6 +1291,7 @@ class _SelectedFromToState extends State<SelectedFromTo> {
                     prefs.remove("Has_From_To");
                     Has_From_To = false;
                   });
+                  removeTokenFromFirebase(FCMToken);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => UberMap()),

@@ -334,6 +334,10 @@ class _SignupScreen extends State<SignupScreen> {
                           prefs.setBool("userLogIn", true);
                           prefs.setString("UserId", User_Id);
                           prefs.setString("User_Name", _nameController.text);
+                          User_Profile_Picture =
+                              "https://firebasestorage.googleapis.com/v0/b/liveticketbyjoyia-244a9.appspot.com/o/images%2FNo_Dp.jpeg?alt=media&token=5d47c083-d458-493e-9556-f71f516de648";
+                          prefs.setString(
+                              "Profile_Picture", User_Profile_Picture);
                           setState(() {});
 
                           CreateDocumentFirebase(User_Id, _nameController.text);

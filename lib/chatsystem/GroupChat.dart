@@ -1,8 +1,10 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/AuthService/Notification.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
 class GroupFromTo extends StatefulWidget {
@@ -21,12 +23,62 @@ class _GroupFromToState extends State<GroupFromTo> {
   User? currentUser;
   String? userEmail;
   String? userProfilePicUrl;
+  late List<String> tokens;
+// Function to fetch the tokens array from Firebase
+  Future<List<String>> fetchTokensFromFirebase() async {
+    // Create a Firestore instance
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Reference to the collection and document
+    DocumentReference harnoliDocument =
+        firestore.collection('Vicahle').doc('$From $To');
+
+    try {
+      // Get the document snapshot
+      DocumentSnapshot docSnapshot = await harnoliDocument.get();
+
+      if (docSnapshot.exists) {
+        // If the document exists, retrieve the 'tokens' array
+        tokens = List<String>.from(docSnapshot['tokens']);
+        print('Fetched Tokens: $tokens');
+        return tokens;
+      } else {
+        print('Document does not exist. No tokens to fetch.');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching tokens: $e');
+      return [];
+    }
+  }
+
+  void notificationPremision() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings seting = await messaging.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: true,
+      criticalAlert: true,
+      provisional: true,
+      sound: true,
+    );
+    if (seting.authorizationStatus == AuthorizationStatus.authorized) {
+      print('Notifiaction permisiton allowed');
+    } else if (seting.authorizationStatus == AuthorizationStatus.provisional) {
+      print('Notifiaction permisiton provisional');
+    } else {
+      print('Notifiaction permisiton is denied');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _getUserInfo();
     _scrollToBottom();
+    fetchTokensFromFirebase();
+    notificationPremision();
   }
 
   Future<void> _getUserInfo() async {
@@ -37,6 +89,20 @@ class _GroupFromToState extends State<GroupFromTo> {
         userProfilePicUrl =
             User_Profile_Picture; // Get profile picture, provide a default if null
       });
+    }
+  }
+
+  void SendNoficationtoAllmember(String mes) async {
+    _controller.clear();
+    for (int i = 0; i < tokens.length; i++) {
+      if (FCMToken != tokens[i]) {
+        await NotificationService.sendNotificationToSelectedDevice(
+            ' $User_Name Send Message in $From To $To (Group)',
+            mes,
+            User_Profile_Picture,
+            2,
+            tokens[i]);
+      }
     }
   }
 
@@ -52,8 +118,10 @@ class _GroupFromToState extends State<GroupFromTo> {
         'profilePicUrl': userProfilePicUrl ?? 'default_profile_pic_url',
         'timestamp': FieldValue.serverTimestamp(),
       });
-      _controller.clear();
+
       _scrollToBottom();
+
+      SendNoficationtoAllmember(_controller.text);
     }
   }
 
@@ -277,7 +345,7 @@ class _GroupFromToState extends State<GroupFromTo> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: Icon(Icons.send, color: Colors.blue),
                   onPressed: _sendMessage,
                 ),
               ],

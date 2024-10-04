@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,13 @@ import 'package:flutter_application_1/Driver/profile_screen.dart';
 import 'package:flutter_application_1/Ini_setup/Splash_Screen.dart';
 import 'package:flutter_application_1/chatsystem/Chat_Screen.dart';
 import 'package:flutter_application_1/chatsystem/Flutter_Locail_Notification.dart';
+import 'package:flutter_application_1/chatsystem/GroupChat.dart';
 import 'package:flutter_application_1/chatsystem/Inbox_Screen.dart';
 import 'package:flutter_application_1/client_user/FromTo.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:flutter_application_1/client_user/Selected_driver.dart';
 import 'package:flutter_application_1/client_user/list_ride.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -60,16 +63,17 @@ class _UberMapState extends State<UberMap> {
 
   Future<void> _requestLocationPermission() async {
     final status = await Permission.location.request();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _getPermissionStatusMessage(status),
-          style: TextStyle(color: Colors.white),
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _getPermissionStatusMessage(status),
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: _getSnackbarColor(status),
         ),
-        backgroundColor: _getSnackbarColor(status),
-      ),
-    );
+      );
+    }
   }
 
   String _getPermissionStatusMessage(PermissionStatus status) {
@@ -115,19 +119,14 @@ class _UberMapState extends State<UberMap> {
     }
   }
 
-  var BottomSheetData = null;
-  @override
-  void initState() {
-    super.initState();
-    _loadMapStyle();
-    _requestLocationPermission();
-    _getCurrentLocation();
-    _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
-      _getCurrentLocation();
-    });
+  void diretionalnoti() {
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: AndroidInitializationSettings("@mipmap/ic_launcher"),
+    );
+  }
 
-    _startRadarAnimation();
-
+  void Notification_System() {
     // 1. This method call when app in terminated state and you get a notification
     // when you click on notification app open from terminated state and you can get notification data in this method
 
@@ -136,13 +135,23 @@ class _UberMapState extends State<UberMap> {
         print("FirebaseMessaging.instance.getInitialMessage");
         if (message != null) {
           print("New Notification");
-          if (message.data['_id'] != null) {
+          LocalNotificationService.createanddisplaynotification(message);
+          if (message.data['id'] == '1') {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => Inbox_Screen(),
               ),
             );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => GroupFromTo(
+                  hasFromTo: "$From $To",
+                ),
+              ),
+            );
           }
+          LocalNotificationService.createanddisplaynotification(message);
         }
       },
     );
@@ -156,13 +165,18 @@ class _UberMapState extends State<UberMap> {
           print(message.notification!.title);
           print(message.notification!.body);
           print("message.data11 ${message.data}");
-          if (message.data['_id'] == "1") {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => Inbox_Screen(),
-              ),
-            );
-          }
+          LocalNotificationService.createanddisplaynotification(message);
+
+          // Check if the message ID is 1, navigate to Inbox_Screen
+          // if (message.data['id'] == "2") {
+          //   Navigator.of(context).push(
+          //     MaterialPageRoute(
+          //       builder: (context) => Inbox_Screen(),
+          //     ),
+          //   );
+          // }
+
+          // Display the local notification
           LocalNotificationService.createanddisplaynotification(message);
         }
       },
@@ -175,18 +189,41 @@ class _UberMapState extends State<UberMap> {
         if (message.notification != null) {
           print(message.notification!.title);
           print(message.notification!.body);
-          print("message.data22 ${message.data['_id']}");
+          print("message.data22 ${message.data['id']}");
           LocalNotificationService.createanddisplaynotification(message);
-          if (message.data['_id'] == "1") {
+          if (message.data['id'] == '1') {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => Inbox_Screen(),
+              ),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => GroupFromTo(
+                  hasFromTo: "$From $To",
+                ),
               ),
             );
           }
         }
       },
     );
+  }
+
+  var BottomSheetData = null;
+  @override
+  void initState() {
+    super.initState();
+    _loadMapStyle();
+    _requestLocationPermission();
+    Notification_System();
+    _getCurrentLocation();
+    _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
+      _getCurrentLocation();
+    });
+
+    _startRadarAnimation();
   }
 
   String? _jsonData = '''
@@ -787,11 +824,20 @@ class _UberMapState extends State<UberMap> {
 
     final Uint8List markerIcon = await _createCustomMarkerWithTail(
       image,
-      90, // image size
+      80, // image size
     );
 
     setState(() {
       // Remove the existing marker with the same MarkerId
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      _markers.removeWhere(
+          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+
       _markers.removeWhere(
           (marker) => marker.markerId.value == '$Name $preliti $prelongi');
 
@@ -1363,61 +1409,132 @@ class _CustomDrawerState extends State<CustomDrawer> {
             Container(
               child: Column(
                 children: [
-                  Container(
-                    height: 50,
-                    width: 200,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.lightBlue, // Primary color for the button
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  Colors.black.withOpacity(0.3), // Shadow color
+                              spreadRadius: 4, // Spread radius
+                              blurRadius: 8, // Blur radius
+                              offset: Offset(0, 3), // Offset in x and y
+                            ),
+                          ],
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.lightBlue,
+                              Color.fromARGB(255, 78, 160, 198)
+                            ],
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      child: ListTile(
+                        leading: Icon(Icons.photo_library),
+                        title: Text(
+                          'Pick from Gallery',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                          ),
                         ),
-                      ),
-                      onPressed: () async {
-                        Navigator.pop(context); // Close the dialog
-                        await _pickFromCamera();
-                      },
-                      child: Text(
-                        'Camera',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        onTap: () async {
+                          Navigator.pop(context); // Close the dialog
+                          await _pickFromGallery();
+                        },
                       ),
                     ),
                   ),
-                  SizedBox(
+                  Container(
                     height: 20,
                   ),
-                  Container(
-                    height: 50,
-                    width: 200,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors
-                            .deepOrangeAccent, // Primary color for the button
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  Colors.black.withOpacity(0.3), // Shadow color
+                              spreadRadius: 4, // Spread radius
+                              blurRadius: 8, // Blur radius
+                              offset: Offset(0, 3), // Offset in x and y
+                            ),
+                          ],
+                          gradient: LinearGradient(
+                            colors: [
+                              Color.fromRGBO(255, 188, 54, 0.737),
+                              Color(0xFFFF942F),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      child: ListTile(
+                        leading: Icon(Icons.camera_alt),
+                        title: Text(
+                          'Take a Photo',
+                          style: TextStyle(fontFamily: 'Poppins'),
                         ),
-                      ),
-                      onPressed: () async {
-                        Navigator.pop(context); // Close the dialog
-                        await _pickFromGallery();
-                      },
-                      child: Text(
-                        'Gallery',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        onTap: () async {
+                          Navigator.pop(context); // Close the dialog
+                          await _pickFromCamera();
+                        },
                       ),
                     ),
                   ),
+                  // Container(
+                  //   height: 50,
+                  //   width: 200,
+                  //   child: ElevatedButton(
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor:
+                  //           Colors.lightBlue, // Primary color for the button
+                  //       padding: EdgeInsets.symmetric(vertical: 10),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(30.0),
+                  //       ),
+                  //     ),
+                  //     onPressed: () async {
+                  //       Navigator.pop(context); // Close the dialog
+                  //       await _pickFromCamera();
+                  //     },
+                  //     child: Text(
+                  //       'Camera',
+                  //       style: TextStyle(
+                  //         fontSize: 20,
+                  //         fontWeight: FontWeight.bold,
+                  //         color: Colors.white,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // SizedBox(
+                  //   height: 20,
+                  // ),
+                  // Container(
+                  //   height: 50,
+                  //   width: 200,
+                  //   child: ElevatedButton(
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: Colors
+                  //           .deepOrangeAccent, // Primary color for the button
+                  //       padding: EdgeInsets.symmetric(vertical: 10),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(30.0),
+                  //       ),
+                  //     ),
+                  //     onPressed: () async {
+                  //       Navigator.pop(context); // Close the dialog
+                  //       await _pickFromGallery();
+                  //     },
+                  //     child: Text(
+                  //       'Gallery',
+                  //       style: TextStyle(
+                  //         fontSize: 20,
+                  //         fontWeight: FontWeight.bold,
+                  //         color: Colors.white,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -1443,34 +1560,74 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
 // Pick image from gallery
   Future<void> _pickFromGallery() async {
-    // Request permission to access the gallery
-    PermissionStatus permissionStatus = await Permission.storage.request();
+    // Retrieve Android device info
+    AndroidDeviceInfo build = await DeviceInfoPlugin().androidInfo;
 
-    // Check if the permission is granted
-    if (permissionStatus.isGranted) {
-      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (build.version.sdkInt >= 30) {
+      // Android 11 (API level 30) and above
+      var re = await Permission.photos.request();
+      if (re.isGranted) {
+        final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
-      if (pickedFile != null) {
-        setState(() {
-          _image = File(pickedFile.path);
-        });
-
-        // Optionally compress or crop the image here
-        _cropImage();
-      } else {
+        if (pickedFile != null) {
+          setState(() {
+            _image = File(pickedFile.path);
+          });
+          // Optionally compress or crop the image here
+          _cropImage();
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('No image selected.')));
+        }
+      } else if (re.isPermanentlyDenied) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('No image selected.')));
+            .showSnackBar(SnackBar(content: Text('Permission is Required!')));
+        openAppSettings();
       }
-    } else if (permissionStatus.isDenied) {
-      // Permission was denied
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Permission denied.')));
-    } else if (permissionStatus.isPermanentlyDenied) {
-      // Permission was permanently denied, direct the user to app settings
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Permission permanently denied. Please enable access in settings.')));
-      await openAppSettings(); // This opens the app settings for the user to grant permission
+    } else if (build.version.sdkInt >= 29) {
+      // Android 10 (API level 29)
+      PermissionStatus permissionStatus = await Permission.storage.request();
+
+      if (permissionStatus.isGranted) {
+        final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+        if (pickedFile != null) {
+          setState(() {
+            _image = File(pickedFile.path);
+          });
+          // Optionally compress or crop the image here
+          _cropImage();
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('No image selected.')));
+        }
+      } else if (permissionStatus.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Permission permanently denied.')));
+        await openAppSettings();
+      }
+    } else {
+      // Android 9 (API level 28) and below
+      PermissionStatus permissionStatus = await Permission.storage.request();
+
+      if (permissionStatus.isGranted) {
+        final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+        if (pickedFile != null) {
+          setState(() {
+            _image = File(pickedFile.path);
+          });
+          // Optionally compress or crop the image here
+          _cropImage();
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('No image selected.')));
+        }
+      } else if (permissionStatus.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Permission permanently denied.')));
+        await openAppSettings();
+      }
     }
   }
 
@@ -1832,82 +1989,184 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         ],
                       ),
                     ),
-          Drawer_Widget(
-            title: "Live Map",
-          ),
-          _buildListTile(
-            context,
-            isSelected: false,
-            icon: CupertinoIcons.antenna_radiowaves_left_right,
-            title: 'Live Map',
-            onTap: () {},
-          ),
+          InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Drawer_Widget(
+                  title: "Live Map",
+                  icon: Icon(Icons.podcasts_rounded, color: Colors.blueGrey))),
           if (Has_From_To)
-            _buildListTile(
-              context,
-              isSelected: false,
-              icon: CupertinoIcons.home,
-              title: '$From To $To',
-              onTap: () {},
+            InkWell(
+              onTap: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DriverRides(),
+                    ));
+              },
+              child: Drawer_Widget(
+                  title: "$From to $To (Group)",
+                  icon: Icon(Icons.info, color: Colors.blueGrey)),
             ),
-          _buildListTile(
-            context,
-            isSelected: false,
-            icon: CupertinoIcons.home,
-            title: 'Pointer Message',
+          InkWell(
             onTap: () {},
+            child: Drawer_Widget(
+                title: "Pointer Message",
+                icon: Icon(Icons.person_pin_outlined, color: Colors.blueGrey)),
           ),
-          _buildListTile(
-            context,
-            icon: Icons.abc,
-            title: 'Inbox',
-            isSelected: false,
-            onTap: () {},
+          InkWell(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Inbox_Screen(),
+                    ));
+              },
+              child: Drawer_Widget(
+                  title: "Inbox",
+                  icon: Icon(
+                    Icons.message_outlined,
+                    color: Colors.blueGrey,
+                  ))),
+          InkWell(
+            child: Drawer_Widget(
+                title: "Terms and Condition",
+                icon: Icon(Icons.policy_outlined, color: Colors.blueGrey)),
           ),
-          _buildListTile(
-            isSelected: false,
-            context,
-            icon: Icons.policy,
-            title: 'Terms and Condition',
-            onTap: () {},
-          ),
-          _buildListTile(
-            isSelected: false,
-            context,
-            icon: Icons.privacy_tip,
-            title: 'Privacy policy',
-            onTap: () {},
-          ),
-          _buildListTile(
-            isSelected: false,
-            context,
-            icon: Icons.privacy_tip,
-            title: 'About',
-            onTap: () {},
-          ),
-          _buildListTile(
-            isSelected: false,
-            context,
-            icon: Icons.delete,
-            title: 'Delete Account',
-            onTap: () {},
-          ),
-          _buildListTile(
-            isSelected: false,
-            context,
-            icon: Icons.logout,
-            title: 'Log out',
+          InkWell(
+              child: Drawer_Widget(
+                  title: "Privacy Policy",
+                  icon: Icon(Icons.privacy_tip, color: Colors.blueGrey))),
+          InkWell(
+              child: Drawer_Widget(
+                  title: "About",
+                  icon: Icon(Icons.info, color: Colors.blueGrey))),
+          InkWell(
             onTap: () async {
-              AuthService authService = AuthService();
-
-              await authService.signOut();
-              await authService.signOutGoogle();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => SplashScreen()),
+              // Show the alert dialog
+              bool? confirmLogout = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [Text("Log Out")]),
+                    content: Text("Are you sure you want to log out?"),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(false); // Return false if cancelled
+                        },
+                        child: Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(true); // Return true if confirmed
+                        },
+                        child: Text("Log Out"),
+                      ),
+                    ],
+                  );
+                },
               );
+
+              // Proceed with logging out if the user confirmed
+              if (confirmLogout == true) {
+                AuthService authService = AuthService();
+
+                await authService.signOut();
+                await authService.signOutGoogle();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => SplashScreen()),
+                );
+              }
             },
+            child: Drawer_Widget(
+              title: "Log Out",
+              icon: Icon(
+                Icons.logout_outlined,
+                color: Colors.blueGrey,
+              ),
+            ),
           ),
+
+          // _buildListTile(
+          //   context,
+          //   isSelected: false,
+          //   icon: CupertinoIcons.antenna_radiowaves_left_right,
+          //   title: 'Live Map',
+          //   onTap: () {},
+          // ),
+          // if (Has_From_To)
+          //   _buildListTile(
+          //     context,
+          //     isSelected: false,
+          //     icon: CupertinoIcons.home,
+          //     title: '$From To $To',
+          //     onTap: () {},
+          //   ),
+          // _buildListTile(
+          //   context,
+          //   isSelected: false,
+          //   icon: CupertinoIcons.home,
+          //   title: 'Pointer Message',
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   context,
+          //   icon: Icons.abc,
+          //   title: 'Inbox',
+          //   isSelected: false,
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   isSelected: false,
+          //   context,
+          //   icon: Icons.policy,
+          //   title: 'Terms and Condition',
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   isSelected: false,
+          //   context,
+          //   icon: Icons.privacy_tip,
+          //   title: 'Privacy policy',
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   isSelected: false,
+          //   context,
+          //   icon: Icons.privacy_tip,
+          //   title: 'About',
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   isSelected: false,
+          //   context,
+          //   icon: Icons.delete,
+          //   title: 'Delete Account',
+          //   onTap: () {},
+          // ),
+          // _buildListTile(
+          //   isSelected: false,
+          //   context,
+          //   icon: Icons.logout,
+          //   title: 'Log out',
+          //   onTap: () async {
+          //     AuthService authService = AuthService();
+
+          //     await authService.signOut();
+          //     await authService.signOutGoogle();
+          //     Navigator.pushReplacement(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => SplashScreen()),
+          //     );
+          //   },
+          // ),
         ],
       ),
     );
@@ -2149,13 +2408,14 @@ class ModernTikTokDrawer extends StatelessWidget {
 
 class Drawer_Widget extends StatelessWidget {
   var title;
+  Icon icon;
 
-  Drawer_Widget({super.key, required this.title});
+  Drawer_Widget({super.key, required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 45,
+      height: 60,
       decoration: BoxDecoration(
           // color: Colors.black,
           border: Border(bottom: BorderSide(color: Colors.grey)),
@@ -2166,7 +2426,7 @@ class Drawer_Widget extends StatelessWidget {
           SizedBox(
             width: 20,
           ),
-          Icon(Icons.radar),
+          icon,
           SizedBox(
             width: 10,
           ),
@@ -2174,7 +2434,7 @@ class Drawer_Widget extends StatelessWidget {
             title,
             style: TextStyle(
                 color: Colors.blueGrey,
-                fontSize: 18,
+                fontSize: 16,
                 fontFamily: "lemon",
                 fontWeight: FontWeight.w600),
           ),

@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
@@ -6,8 +7,7 @@ import 'package:flutter_application_1/chatsystem/Chat_Screen.dart';
 import 'package:intl/intl.dart';
 
 class Inbox_Screen extends StatefulWidget {
-  String?
-      Reciver_Inbox; // Use a specific type (String) for clarity and null safety
+  String? Reciver_Inbox;
 
   Inbox_Screen({super.key, this.Reciver_Inbox});
 
@@ -18,14 +18,36 @@ class Inbox_Screen extends StatefulWidget {
 class _Inbox_ScreenState extends State<Inbox_Screen> {
   late Stream<QuerySnapshot> _inboxStream;
 
+  void notificationPremision() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings seting = await messaging.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: true,
+      criticalAlert: true,
+      provisional: true,
+      sound: true,
+    );
+    if (seting.authorizationStatus == AuthorizationStatus.authorized) {
+      print('Notifiaction permisiton allowed');
+    } else if (seting.authorizationStatus == AuthorizationStatus.provisional) {
+      print('Notifiaction permisiton provisional');
+    } else {
+      print('Notifiaction permisiton is denied');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // Initialize the inbox stream here since you have access to widget.Reciver_Inbox
+    // Initialize the inbox stream with ordered messages by 'time' in descending order
+    notificationPremision();
     _inboxStream = FirebaseFirestore.instance
         .collection('Inbox')
         .doc(User_Id)
         .collection("Inbox")
+        .orderBy('time', descending: true)
         .snapshots();
 
     print("inbox stream :$_inboxStream");
@@ -48,54 +70,45 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
             return Center(child: Text('Something went wrong!'));
           }
 
-          // Get the list of documents from the snapshot
           final messages = snapshot.data?.docs ?? [];
 
           return SingleChildScrollView(
             child: Column(
               children: [
+                // Example of a custom widget with From and To, adjust as needed
                 if (Has_From_To)
                   InkWell(
                     onTap: () {
                       Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GroupFromTo(
-                              hasFromTo: "$From $To",
-                            ),
-                          ));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GroupFromTo(
+                            hasFromTo: "$From $To",
+                          ),
+                        ),
+                      );
                     },
                     child: Row(
                       children: [
-                        // SizedBox(
-                        //   width: 15,
-                        // ),
-
                         Container(
                           height: 50,
                           width: MediaQuery.of(context).size.width,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(25)), // Border radius
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(
-                                    0.5), // Shadow color with opacity
-                                spreadRadius:
-                                    2, // How much the shadow should spread
-                                blurRadius: 5, // Softness of the shadow
-                                offset: Offset(0,
-                                    3), // Horizontal and Vertical position of the shadow
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
                               ),
                             ],
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SizedBox(
-                                width: 15,
-                              ),
+                              SizedBox(width: 15),
                               CircleAvatar(
                                 radius: 28,
                                 backgroundImage:
@@ -109,20 +122,15 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   border: Border.all(
-                                    color: Colors
-                                        .black, // Set your desired border color
-                                    width: 2.0, // Set the border width
+                                    color: Colors.black,
+                                    width: 2.0,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black
-                                          .withOpacity(0.2), // Shadow color
-                                      spreadRadius:
-                                          2, // Spread radius of the shadow
-                                      blurRadius:
-                                          5, // Blur radius of the shadow
-                                      offset: Offset(
-                                          0, 3), // Offset of the shadow (x, y)
+                                      color: Colors.black.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 3),
                                     ),
                                   ],
                                 ),
@@ -137,18 +145,14 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: 10,
-                              ),
+                              SizedBox(width: 10),
                               Text(
                                 "To",
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
-                              SizedBox(
-                                width: 10,
-                              ),
+                              SizedBox(width: 10),
                               Container(
                                 width: 100,
                                 height: 40,
@@ -156,20 +160,15 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   border: Border.all(
-                                    color: Colors
-                                        .black, // Set your desired border color
-                                    width: 2.0, // Set the border width
+                                    color: Colors.black,
+                                    width: 2.0,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black
-                                          .withOpacity(0.2), // Shadow color
-                                      spreadRadius:
-                                          2, // Spread radius of the shadow
-                                      blurRadius:
-                                          5, // Blur radius of the shadow
-                                      offset: Offset(
-                                          0, 3), // Offset of the shadow (x, y)
+                                      color: Colors.black.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 3),
                                     ),
                                   ],
                                 ),
@@ -185,9 +184,7 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                                 ),
                               ),
                               Spacer(),
-                              SizedBox(
-                                width: 10,
-                              ),
+                              SizedBox(width: 10),
                               InkWell(
                                   onTap: () {
                                     Navigator.pop(context);
@@ -195,9 +192,7 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                                   child: Icon(
                                     Icons.arrow_forward_rounded,
                                   )),
-                              SizedBox(
-                                width: 10,
-                              ),
+                              SizedBox(width: 10),
                             ],
                           ),
                         ),
@@ -207,13 +202,24 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
                 for (var message in messages)
                   GestureDetector(
                     onTap: () {
-                      // Handle the tap event, e.g., navigate to the detailed chat screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Chat_Screen_Inbox(
+                            to_profilepic: message['User_Profile_pic'],
+                            to_user_name: message['contactName'],
+                            to_user_id: message['User_Id'],
+                          ),
+                        ),
+                      );
                     },
                     child: Inbox_Screen_Card(
                       contactName: message['contactName'] ?? 'Unknown',
                       lastMessagePreview:
                           message['lastMessage'] ?? 'No message',
-                      time: (message['time']).toDate(),
+                      time: message['time'] != null
+                          ? message['time'].toDate()
+                          : DateTime.now(),
                       unreadCount: message['unreadCount'] ?? 0,
                       to_user_id: message['User_Id'],
                       to_profile_pic: message['User_Profile_pic'],
@@ -228,56 +234,54 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
   }
 }
 
+// DateTime conversion utility function
 DateTime convertTimestampToDateTime(var timestamp) {
   if (timestamp is Timestamp) {
-    // Firebase Timestamp to DateTime
     return timestamp.toDate();
   } else if (timestamp is int) {
-    // If the timestamp is in seconds or milliseconds since epoch
     return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
   } else if (timestamp is String) {
-    // Parse string to DateTime if it's in a valid format
     return DateTime.parse(timestamp);
   } else {
-    // If it's already a DateTime or some unsupported type
     throw Exception('Invalid timestamp type');
   }
 }
 
+// The custom card widget for displaying inbox messages
 class Inbox_Screen_Card extends StatelessWidget {
   final String contactName;
   final String lastMessagePreview;
-  final DateTime time; // Change to DateTime instead of String
+  final DateTime time;
   final int unreadCount;
   final to_user_id;
   final to_profile_pic;
 
-  const Inbox_Screen_Card(
-      {Key? key,
-      required this.contactName,
-      required this.to_profile_pic,
-      required this.lastMessagePreview,
-      required this.time, // DateTime
-      required this.unreadCount,
-      required this.to_user_id})
-      : super(key: key);
+  const Inbox_Screen_Card({
+    Key? key,
+    required this.contactName,
+    required this.to_profile_pic,
+    required this.lastMessagePreview,
+    required this.time,
+    required this.unreadCount,
+    required this.to_user_id,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Formatting the DateTime into a readable string
     String formattedTime = DateFormat('hh:mm a').format(time);
 
     return InkWell(
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Chat_Screen_Inbox(
-                to_profilepic: to_profile_pic,
-                to_user_name: contactName,
-                to_user_id: to_user_id,
-              ),
-            ));
+          context,
+          MaterialPageRoute(
+            builder: (context) => Chat_Screen_Inbox(
+              to_profilepic: to_profile_pic,
+              to_user_name: contactName,
+              to_user_id: to_user_id,
+            ),
+          ),
+        );
       },
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
@@ -318,7 +322,7 @@ class Inbox_Screen_Card extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  formattedTime, // Display formatted time
+                  formattedTime,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -333,7 +337,7 @@ class Inbox_Screen_Card extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '$unreadCount', // Number of unread messages
+                      '$unreadCount',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white,

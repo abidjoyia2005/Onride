@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
@@ -13,6 +14,36 @@ class FromtoPage extends StatefulWidget {
 class _FromtoPageState extends State<FromtoPage> {
   final TextEditingController _startPlace = TextEditingController();
   final TextEditingController _endPlace = TextEditingController();
+
+  void addTokenToFirebase(String newToken) async {
+    // Create a Firestore instance
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Reference to the collection and document
+    DocumentReference harnoliDocument =
+        firestore.collection('Vicahle').doc('$From $To');
+
+    try {
+      // Get the document snapshot
+      DocumentSnapshot docSnapshot = await harnoliDocument.get();
+
+      if (docSnapshot.exists) {
+        // If the document exists, update the 'tokens' array with the new token
+        await harnoliDocument.update({
+          'tokens': FieldValue.arrayUnion([newToken]),
+        });
+        print('Token added successfully to existing array.');
+      } else {
+        // If the document does not exist, create it and add the token to a new array
+        await harnoliDocument.set({
+          'tokens': [newToken],
+        });
+        print('Document created and token added successfully.');
+      }
+    } catch (e) {
+      print('Error adding token: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +146,7 @@ class _FromtoPageState extends State<FromtoPage> {
                       Has_From_To = true;
 
                       setState(() {});
+                      addTokenToFirebase(FCMToken);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => DriverRides()),
