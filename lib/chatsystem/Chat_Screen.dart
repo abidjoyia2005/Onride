@@ -70,7 +70,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       if (FCMToken != To_User_FCMToken) {
         SendNotificationto(_controller.text);
       }
-      _controller.clear();
+      print("fds");
     } else {
       setState(() {
         To_User_FCMToken = null;
