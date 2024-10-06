@@ -25,6 +25,56 @@ var _textH2 = TextStyle(
     fontSize: 16.0,
     color: Colors.black);
 
+void showCustomSnackBarTop(BuildContext context, String data) {
+  final overlay = Overlay.of(context);
+  final overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      top: 50.0, // You can adjust this value to position it higher/lower
+      left: 10.0,
+      right: 10.0,
+      child: Material(
+        color: const Color.fromARGB(0, 31, 18, 18),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+          decoration: BoxDecoration(
+            color: Colors.black45,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: AnimatedOpacity(
+            opacity: 1.0, // Fully opaque
+            duration: Duration(seconds: 8), // Duration of the fade-in effect
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    data,
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                    softWrap:
+                        true, // Allow the text to wrap into multiple lines
+                    maxLines: null, // No limit on the number of lines
+                    overflow:
+                        TextOverflow.visible, // Make sure no text is hidden
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  // Insert the overlay entry into the overlay
+  overlay?.insert(overlayEntry);
+
+  // Remove the overlay after the duration
+  Future.delayed(Duration(seconds: 3), () {
+    overlayEntry.remove();
+  });
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 

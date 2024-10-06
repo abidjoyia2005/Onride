@@ -19,19 +19,16 @@ import 'package:flutter_application_1/client_user/FromTo.dart';
 import 'package:flutter_application_1/client_user/Map-for-Driver.dart';
 import 'package:flutter_application_1/client_user/Selected_driver.dart';
 import 'package:flutter_application_1/client_user/list_ride.dart';
+import 'package:flutter_application_1/loading.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 import 'dart:ui' as ui;
-
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
-
 import 'package:image_picker/image_picker.dart';
-
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage import
@@ -828,23 +825,19 @@ class _UberMapState extends State<UberMap> {
     );
 
     setState(() {
-      // Remove the existing marker with the same MarkerId
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      // Remove the existing marker with the same
 
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      for (int i = 0; i < 5; i++) {
+        _markers
+            .removeWhere((marker) => marker.markerId.value == '$pointuserid');
+      }
+      preliti = liti;
+      prelongi = longi;
 
       // Add the updated marker with the new position and other details
       _markers.add(
         Marker(
-          markerId: MarkerId('$Name $liti $longi'),
+          markerId: MarkerId('$pointuserid'),
           position: LatLng(liti, longi), // New position
           icon: BitmapDescriptor.fromBytes(markerIcon),
           infoWindow: InfoWindow(
@@ -863,8 +856,6 @@ class _UberMapState extends State<UberMap> {
               title: '$Name'),
         ),
       );
-      preliti = liti;
-      prelongi = longi;
     });
   }
 
@@ -951,11 +942,10 @@ class _UberMapState extends State<UberMap> {
       body: Stack(
         children: [
           loadMap
-              ? Center(
-                  child:
-                      CircularProgressIndicator()) // Show loading indicator while fetching location
+              ? LoadingGif()
               : GoogleMap(
                   // mapType: MapType.hybrid,
+
                   zoomControlsEnabled: false,
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
@@ -964,7 +954,8 @@ class _UberMapState extends State<UberMap> {
                     ),
                     zoom: 14.0,
                   ),
-                  myLocationEnabled: true, // Enable to show the user's location
+                  myLocationEnabled:
+                      false, // Enable to show the user's location
                   myLocationButtonEnabled: true,
                   trafficEnabled: true,
 
@@ -1024,13 +1015,13 @@ class _UberMapState extends State<UberMap> {
                   }
                 } else {
                   if (Has_From_To) {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DriverRides(),
                         ));
                   } else {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => FromtoPage(),
@@ -1230,26 +1221,46 @@ class _UberMapState extends State<UberMap> {
                                                           userDoc['longitude'],
                                                         );
                                                       },
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(
-                                                            Icons
-                                                                .location_history_outlined,
-                                                            color: Color(
-                                                                0xFF319AFF),
-                                                            size: 18,
-                                                          ),
-                                                          Text(
-                                                            "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                            style: TextStyle(
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            25)),
+                                                            border: Border.all(
+                                                                width: 3,
+                                                                color: Color(
+                                                                    0xFF319AFF))),
+                                                        child: Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 5,
+                                                                  horizontal:
+                                                                      5),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .location_history_outlined,
                                                                 color: Color(
                                                                     0xFF319AFF),
-                                                                fontSize: 10,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w800),
+                                                                size: 18,
+                                                              ),
+                                                              Text(
+                                                                "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                                style: TextStyle(
+                                                                    color: Color(
+                                                                        0xFF319AFF),
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800),
+                                                              ),
+                                                            ],
                                                           ),
-                                                        ],
+                                                        ),
                                                       ),
                                                     )
                                                   : GestureDetector(
@@ -1259,26 +1270,47 @@ class _UberMapState extends State<UberMap> {
                                                           userDoc['longitude'],
                                                         );
                                                       },
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(
-                                                            Icons
-                                                                .location_history_outlined,
-                                                            color: Colors
-                                                                .grey[400],
-                                                            size: 18,
-                                                          ),
-                                                          Text(
-                                                            "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                            style: TextStyle(
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            25)),
+                                                            border: Border.all(
+                                                                width: 1.5,
+                                                                color:
+                                                                    Colors.grey[
+                                                                        400]!)),
+                                                        child: Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal: 5,
+                                                                  vertical: 5),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .location_history_outlined,
                                                                 color: Colors
                                                                     .grey[400],
-                                                                fontSize: 10,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w800),
+                                                                size: 18,
+                                                              ),
+                                                              Text(
+                                                                "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        400],
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800),
+                                                              ),
+                                                            ],
                                                           ),
-                                                        ],
+                                                        ),
                                                       ),
                                                     ),
                                               Spacer(),
@@ -1576,12 +1608,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // Optionally compress or crop the image here
           _cropImage();
         } else {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('No image selected.')));
+          showCustomSnackBarTop(context, "No image selected.");
         }
       } else if (re.isPermanentlyDenied) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Permission is Required!')));
+        showCustomSnackBarTop(context, "Permission is Required!");
         openAppSettings();
       }
     } else if (build.version.sdkInt >= 29) {
@@ -1598,12 +1628,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // Optionally compress or crop the image here
           _cropImage();
         } else {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('No image selected.')));
+          showCustomSnackBarTop(context, "No image selected.");
         }
       } else if (permissionStatus.isPermanentlyDenied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Permission permanently denied.')));
+        showCustomSnackBarTop(context, "Permission permanently denied.");
+
         await openAppSettings();
       }
     } else {
@@ -1620,12 +1649,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // Optionally compress or crop the image here
           _cropImage();
         } else {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('No image selected.')));
+          showCustomSnackBarTop(context, "No image selected.");
         }
       } else if (permissionStatus.isPermanentlyDenied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Permission permanently denied.')));
+        showCustomSnackBarTop(context, "Permission permanently denied.");
+
         await openAppSettings();
       }
     }
@@ -1648,18 +1676,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
         // Optionally compress or crop the image here
         _cropImage();
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('No image selected.')));
+        showCustomSnackBarTop(context, "No image selected.");
       }
     } else if (permissionStatus.isDenied) {
       // If permission is denied, show a message to the user
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Camera permission denied.')));
+      showCustomSnackBarTop(context, "Camera permission denied.");
     } else if (permissionStatus.isPermanentlyDenied) {
       // If permission is permanently denied, prompt the user to enable it in settings
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Camera permission permanently denied. Please enable it in settings.')));
+      showCustomSnackBarTop(context,
+          "Camera permission permanently denied. Please enable it in settings.");
+
       await openAppSettings(); // Opens the app settings for the user to manually enable permissions
     }
   }
@@ -1763,12 +1789,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
           .catchError(
               (error) => print("Failed to add user message count: $error"));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image uploaded successfully!')));
+      showCustomSnackBarTop(context, "Profile Picture uploaded successfully!");
     } catch (e) {
       // Show a SnackBar with the error
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+      showCustomSnackBarTop(context, "Failed to upload image: $e");
     } finally {
       setState(() {
         isLoading = false; // Stop loading after upload completes
@@ -2453,7 +2477,6 @@ class Drawer_Widget extends StatelessWidget {
   }
 }
 
-
 // Stream<void> getUsersInAreaStream(double lat1, double lng1, double lat2, double lng2) async* {
 //   String startGridCell = getGridCell(lat1, lng1);
 //   String endGridCell = getGridCell(lat2, lng2);
@@ -2466,7 +2489,7 @@ class Drawer_Widget extends StatelessWidget {
 //       .snapshots() // Using snapshots for real-time streaming
 //       .listen((QuerySnapshot snapshot) async {
 //         print('Grid id :${snapshot.docs}');
-        
+
 //         // Clear markers before adding new ones
 //         setState(() {
 //           _markers.clear();
@@ -2521,11 +2544,7 @@ class Drawer_Widget extends StatelessWidget {
 //       });
 // }
 
-
-
-
-
-// for 3km code 
+// for 3km code
 // import 'dart:async';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
@@ -3415,4 +3434,3 @@ class Drawer_Widget extends StatelessWidget {
 //     );
 //   }
 // }
-

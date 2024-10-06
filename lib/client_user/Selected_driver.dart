@@ -542,7 +542,10 @@ class _WhichLocationState extends State<WhichLocation> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => DriverRides()),
+                                    builder: (context) => DriverRides(
+                                          descrip:
+                                              "Go from $From at ${_selectedDate.toString()}",
+                                        )),
                               );
                             } else {
                               // Show an alert if any of the required fields are missing

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/chatsystem/GroupChat.dart';
 import 'package:flutter_application_1/Driver/Uber_map.dart';
+import 'package:flutter_application_1/loading.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,6 +28,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 
 class DriverRides extends StatefulWidget {
+  var descrip;
+  DriverRides({this.descrip});
   @override
   State<DriverRides> createState() => _DriverRidesState();
 }
@@ -94,10 +97,23 @@ class _DriverRidesState extends State<DriverRides> {
     }
   }
 
+  void saveDescriptin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (widget.descrip != null) {
+      Descraption.text = widget.descrip;
+      prefs.setString("DescriptionForDriver", widget.descrip);
+    } else {
+      Descraption.text = prefs.getString("DescriptionForDriver") ?? " ";
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
     _loadMapStyle();
+    saveDescriptin();
 
     _requestLocationPermission();
     _radarTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
@@ -521,6 +537,7 @@ class _DriverRidesState extends State<DriverRides> {
 
   var preliti;
   var prelongi;
+
   Future<void> _loadCustomMarker(
       String image, String Name, String Des, double liti, double longi) async {
     print("maker mak for $Name ");
@@ -772,7 +789,7 @@ class _DriverRidesState extends State<DriverRides> {
           loadMap
               ? Center(
                   child:
-                      CircularProgressIndicator()) // Show loading indicator while fetching location
+                      LoadingGif()) // Show loading indicator while fetching location
               : GoogleMap(
                   zoomControlsEnabled: false,
                   initialCameraPosition: CameraPosition(
@@ -804,32 +821,33 @@ class _DriverRidesState extends State<DriverRides> {
                   circles: _radarCircle != null ? {_radarCircle!} : {},
                   markers: _markers, // Add markers to the map
                 ),
-          Positioned(
-            right: 12,
-            top: 90,
-            child: InkWell(
-              onTap: () {
-                showAlertDialog(context);
-              },
-              child: Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(5)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5), // Shadow color
-                      spreadRadius: 1, // How wide the shadow spreads
-                      blurRadius: 3, // Softness of the shadow
-                      offset: Offset(0, 2), // Positioning of the shadow
-                    ),
-                  ],
+          if (!Has_Driver_Acount)
+            Positioned(
+              right: 12,
+              top: 90,
+              child: InkWell(
+                onTap: () {
+                  showAlertDialog(context);
+                },
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5), // Shadow color
+                        spreadRadius: 1, // How wide the shadow spreads
+                        blurRadius: 3, // Softness of the shadow
+                        offset: Offset(0, 2), // Positioning of the shadow
+                      ),
+                    ],
+                  ),
+                  child: Image.asset("Assets/Images/consulting.gif"),
                 ),
-                child: Image.asset("Assets/Images/consulting.gif"),
               ),
             ),
-          ),
           Positioned(
             right: 12,
             top: 138,
@@ -984,28 +1002,46 @@ class _DriverRidesState extends State<DriverRides> {
                                                         userDoc['longitude'],
                                                       );
                                                     },
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons
-                                                              .location_history_outlined,
-                                                          color:
-                                                              Color(0xFF319AFF),
-                                                          size: 18,
-                                                        ),
-                                                        Text(
-                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                          style: TextStyle(
-                                                              color: Color(
-                                                                  0xFF319AFF),
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
+                                                    child: Container(
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            25)),
+                                                            border: Border.all(
+                                                                width: 3,
+                                                                color: Color(
+                                                                    0xFF319AFF))),
+                                                        child: Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 5,
+                                                                  horizontal:
+                                                                      5),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .location_history_outlined,
+                                                                color: Color(
+                                                                    0xFF319AFF),
+                                                                size: 18,
+                                                              ),
+                                                              Text(
+                                                                "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                                style: TextStyle(
+                                                                    color: Color(
+                                                                        0xFF319AFF),
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )))
                                                 : GestureDetector(
                                                     onTap: () {
                                                       Movecamra(
@@ -1013,28 +1049,50 @@ class _DriverRidesState extends State<DriverRides> {
                                                         userDoc['longitude'],
                                                       );
                                                     },
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons
-                                                              .location_history_outlined,
-                                                          color:
-                                                              Colors.grey[400],
-                                                          size: 18,
-                                                        ),
-                                                        Text(
-                                                          "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .grey[400],
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
+                                                    child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius.all(
+                                                                        Radius.circular(
+                                                                            25)),
+                                                                border:
+                                                                    Border.all(
+                                                                  width: 1.5,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400]!,
+                                                                )),
+                                                        child: Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 5,
+                                                                  horizontal:
+                                                                      5),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .location_history_outlined,
+                                                                color: Colors
+                                                                    .grey[400],
+                                                                size: 18,
+                                                              ),
+                                                              Text(
+                                                                "${calculateDistance(userDoc['latitude'], userDoc['longitude'], _currentPosition!.latitude, _currentPosition!.longitude)} KM",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        400],
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ))),
                                             Spacer(),
                                             if (Timedef(userDoc['time']))
                                               Row(
@@ -1212,31 +1270,78 @@ class _SelectedFromToState extends State<SelectedFromTo> {
                   Icons.arrow_back_rounded,
                 )),
             Spacer(),
-            Container(
-              width: 100,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                border: Border.all(
-                  color: Colors.black, // Set your desired border color
-                  width: 2.0, // Set the border width
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2), // Shadow color
-                    spreadRadius: 2, // Spread radius of the shadow
-                    blurRadius: 5, // Blur radius of the shadow
-                    offset: Offset(0, 3), // Offset of the shadow (x, y)
+            InkWell(
+              onTap: () async {
+                // Show the confirmation dialog
+                bool? isConfirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      // title: Text('Confirm Change'),
+                      content: Text(
+                          'Are you sure you want to change From & To Place?'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('No'),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pop(false); // Dismiss dialog and return false
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Yes'),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pop(true); // Dismiss dialog and return true
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                // If the user confirmed, execute the existing code
+                if (isConfirmed == true) {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  setState(() {
+                    prefs.remove("Has_From_To");
+                    prefs.remove("DescriptionForDriver");
+                    Has_From_To = false;
+                  });
+                  removeTokenFromFirebase(FCMToken);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => UberMap()),
+                  );
+                }
+              },
+              child: Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.black, // Set your desired border color
+                    width: 2.0, // Set the border width
                   ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  widget.from.toString(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: "Poppinssb",
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Shadow color
+                      spreadRadius: 2, // Spread radius of the shadow
+                      blurRadius: 5, // Blur radius of the shadow
+                      offset: Offset(0, 3), // Offset of the shadow (x, y)
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    widget.from.toString(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: "Poppinssb",
+                    ),
                   ),
                 ),
               ),
@@ -1253,42 +1358,43 @@ class _SelectedFromToState extends State<SelectedFromTo> {
             SizedBox(
               width: 10,
             ),
-            Container(
-              width: 100,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                border: Border.all(
-                  color: Colors.black, // Set your desired border color
-                  width: 2.0, // Set the border width
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2), // Shadow color
-                    spreadRadius: 2, // Spread radius of the shadow
-                    blurRadius: 5, // Blur radius of the shadow
-                    offset: Offset(0, 3), // Offset of the shadow (x, y)
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  widget.to.toString(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: "Poppinssb",
-                  ),
-                ),
-              ),
-            ),
-            Spacer(),
             InkWell(
-                onTap: () async {
+              onTap: () async {
+                // Show the confirmation dialog
+                bool? isConfirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      // title: Text('Confirm Change'),
+                      content: Text(
+                          'Are you sure you want to change From & To Place?'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('No'),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pop(false); // Dismiss dialog and return false
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Yes'),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pop(true); // Dismiss dialog and return true
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                // If the user confirmed, execute the existing code
+                if (isConfirmed == true) {
                   SharedPreferences prefs =
                       await SharedPreferences.getInstance();
                   setState(() {
                     prefs.remove("Has_From_To");
+                    prefs.remove("DescriptionForDriver");
                     Has_From_To = false;
                   });
                   removeTokenFromFirebase(FCMToken);
@@ -1296,6 +1402,84 @@ class _SelectedFromToState extends State<SelectedFromTo> {
                     context,
                     MaterialPageRoute(builder: (context) => UberMap()),
                   );
+                }
+              },
+              child: Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.black, // Set your desired border color
+                    width: 2.0, // Set the border width
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Shadow color
+                      spreadRadius: 2, // Spread radius of the shadow
+                      blurRadius: 5, // Blur radius of the shadow
+                      offset: Offset(0, 3), // Offset of the shadow (x, y)
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    widget.to.toString(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: "Poppinssb",
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Spacer(),
+            InkWell(
+                onTap: () async {
+                  // Show the confirmation dialog
+                  bool? isConfirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        // title: Text('Confirm Change'),
+                        content: Text(
+                            'Are you sure you want to change From & To Place?'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('No'),
+                            onPressed: () {
+                              Navigator.of(context).pop(
+                                  false); // Dismiss dialog and return false
+                            },
+                          ),
+                          TextButton(
+                            child: Text('Yes'),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pop(true); // Dismiss dialog and return true
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  // If the user confirmed, execute the existing code
+                  if (isConfirmed == true) {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    setState(() {
+                      prefs.remove("Has_From_To");
+                      prefs.remove("DescriptionForDriver");
+                      Has_From_To = false;
+                    });
+                    removeTokenFromFirebase(FCMToken);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => UberMap()),
+                    );
+                  }
                 },
                 child: Image.asset("Assets/icons/change.png")),
             SizedBox(

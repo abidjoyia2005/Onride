@@ -268,11 +268,15 @@ class _GroupFromToState extends State<GroupFromTo> {
                   .collection('Vicahle')
                   .doc(widget.hasFromTo)
                   .collection("message")
-                  .orderBy('timestamp')
+                  .orderBy('timestamp',
+                      descending:
+                          true) // Order by timestamp in descending order to get the latest messages first
+                  .limit(150) // Limit to the last 150 messages
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
+                }
                 final messages = snapshot.data!.docs;
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _scrollToBottom();
@@ -281,6 +285,7 @@ class _GroupFromToState extends State<GroupFromTo> {
                   controller: _scrollController,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
+                    print("Messages list : ${messages.length}");
                     final message = messages[index];
                     final isCurrentUser = message['sender'] == userEmail;
                     final messageText = message['text'];

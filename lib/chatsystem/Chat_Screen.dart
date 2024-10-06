@@ -76,6 +76,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         To_User_FCMToken = null;
       });
     }
+    _controller.clear();
 
     // / Return null if the document does not exist or has no data
   }
@@ -95,6 +96,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         'profilePicUrl': userProfilePicUrl ?? 'default_profile_pic_url',
         'timestamp': FieldValue.serverTimestamp(),
       });
+
       _scrollToBottom();
     }
 
@@ -200,51 +202,45 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('chats')
-                  .doc(generateChatId(User_Id, widget.to_user_id))
-                  .collection("chats")
-                  .orderBy('timestamp')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return Center(child: CircularProgressIndicator());
-                final messages = snapshot.data!.docs;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollToBottom();
-                });
-                return ListView.builder(
-                  controller: _scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isCurrentUser = message['sender'] == userEmail;
-                    final messageText = message['text'];
-                    final timestamp = message['timestamp'] as Timestamp?;
-                    final time = timestamp != null
-                        ? DateFormat('dd/mm/yyyy      hh:mm a')
-                            .format(timestamp.toDate())
-                        : 'N/A'; // Format the timestamp to a readable time string
+              child: StreamBuilder<QuerySnapshot>(
+            stream: _firestore
+                .collection('chats')
+                .doc(generateChatId(User_Id, widget.to_user_id))
+                .collection("chats")
+                .orderBy('timestamp', descending: true)
+                .limit(150)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-                    if (isCurrentUser) {
-                      // Sent message by the current user
-                      return SentMessageBubble(
-                        message: messageText,
-                        time: time,
-                      );
-                    } else {
-                      // Received message from others
-                      return ReceivedMessageBubble(
-                        message: messageText,
-                        time: time,
-                      );
-                    }
-                  },
-                );
-              },
-            ),
-          ),
+              final messages = snapshot.data!.docs.reversed
+                  .toList(); // Reversing to display in chronological order
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollToBottom();
+              });
+
+              return ListView.builder(
+                controller: _scrollController,
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  final isCurrentUser = message['sender'] == userEmail;
+                  final messageText = message['text'];
+                  final timestamp = message['timestamp'] as Timestamp?;
+                  final time = timestamp != null
+                      ? DateFormat('dd/MM/yyyy hh:mm a')
+                          .format(timestamp.toDate())
+                      : 'N/A';
+
+                  return isCurrentUser
+                      ? SentMessageBubble(message: messageText, time: time)
+                      : ReceivedMessageBubble(message: messageText, time: time);
+                },
+              );
+            },
+          )),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
