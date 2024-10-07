@@ -270,7 +270,7 @@ class _GroupFromToState extends State<GroupFromTo> {
                   .collection("message")
                   .orderBy('timestamp',
                       descending:
-                          true) // Order by timestamp in descending order to get the latest messages first
+                          false) // Order by timestamp in descending order to get the latest messages first
                   .limit(150) // Limit to the last 150 messages
                   .snapshots(),
               builder: (context, snapshot) {

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/AuthService/Notification.dart';
+import 'package:flutter_application_1/loading.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
 class Chat_Screen_Inbox extends StatefulWidget {
@@ -24,12 +25,9 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
   User? currentUser;
   String? userEmail;
   String? userProfilePicUrl;
+  int? unreadCount = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _getUserInfo();
-    _scrollToBottom();
+  void getUnredmessage() {
     _firestore
         .collection('Inbox')
         .doc(User_Id) // Use the passed value
@@ -38,6 +36,32 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         .set({
       'unreadCount': 0,
     }, SetOptions(merge: true));
+    unreadCount;
+
+    _firestore
+        .collection('Inbox')
+        .doc(widget.to_user_id) // Use the passed value
+        .collection("Inbox")
+        .doc(User_Id) // Specify the user document
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        unreadCount = documentSnapshot['unreadCount'] as int?;
+        print("Unread Count: $unreadCount");
+      } else {
+        print("Document does not exist!");
+      }
+    }).catchError((error) {
+      print("Error retrieving unreadCount: $error");
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserInfo();
+    _scrollToBottom();
+    getUnredmessage();
   }
 
   Future<void> _getUserInfo() async {
@@ -212,7 +236,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
+                return LoadingGif();
               }
 
               final messages = snapshot.data!.docs.reversed
@@ -230,13 +254,29 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
                   final messageText = message['text'];
                   final timestamp = message['timestamp'] as Timestamp?;
                   final time = timestamp != null
-                      ? DateFormat('dd/MM/yyyy hh:mm a')
+                      ? DateFormat('dd/MM/yyyy      hh:mm a')
                           .format(timestamp.toDate())
                       : 'N/A';
 
                   return isCurrentUser
-                      ? SentMessageBubble(message: messageText, time: time)
-                      : ReceivedMessageBubble(message: messageText, time: time);
+                      ? SentMessageBubble(
+                          message: messageText,
+                          time: time,
+                          Seen: index == messages.length - 1
+                              ? unreadCount! > 0
+                                  ? false
+                                  : true
+                              : false,
+                        )
+                      : ReceivedMessageBubble(
+                          message: messageText,
+                          time: time,
+                          Seen: index == messages.length - 1
+                              ? unreadCount! > 0
+                                  ? false
+                                  : true
+                              : false,
+                        );
                 },
               );
             },
@@ -293,8 +333,10 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
 class SentMessageBubble extends StatelessWidget {
   final String message;
   final String time;
+  final bool Seen;
 
   const SentMessageBubble({
+    required this.Seen,
     required this.message,
     required this.time,
     super.key,
@@ -304,30 +346,39 @@ class SentMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
-      child: Padding(
-        padding: EdgeInsets.only(right: 20, left: 50),
-        child: Container(
-          margin: EdgeInsets.symmetric(vertical: 5.0),
-          padding: EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            color: Colors.green[300],
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                message,
-                style: TextStyle(color: Colors.white),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(right: 20, left: 50),
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 5.0),
+              padding: EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: Colors.green[300],
+                borderRadius: BorderRadius.circular(10.0),
               ),
-              SizedBox(height: 5),
-              Text(
-                time,
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    time,
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (Seen)
+            Text(
+              "Seen",
+              style: TextStyle(color: Colors.grey),
+            ),
+        ],
       ),
     );
   }
@@ -336,8 +387,10 @@ class SentMessageBubble extends StatelessWidget {
 class ReceivedMessageBubble extends StatelessWidget {
   final String message;
   final String time;
+  final bool Seen;
 
   const ReceivedMessageBubble({
+    required this.Seen,
     required this.message,
     required this.time,
     super.key,
@@ -347,27 +400,36 @@ class ReceivedMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: EdgeInsets.only(left: 20, right: 50),
-        child: Container(
-          margin: EdgeInsets.symmetric(vertical: 5.0),
-          padding: EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(message),
-              SizedBox(height: 5),
-              Text(
-                time,
-                style: TextStyle(color: Colors.black54, fontSize: 12),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: 20, right: 50),
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 5.0),
+              padding: EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10.0),
               ),
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(message),
+                  SizedBox(height: 5),
+                  Text(
+                    time,
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+          if (Seen)
+            Text(
+              "Seen",
+              style: TextStyle(color: Colors.grey),
+            ),
+        ],
       ),
     );
   }

@@ -746,7 +746,6 @@ class _UberMapState extends State<UberMap> {
                     ),
                   ),
                   onPressed: () async {
-                    print("User input: ${Descraption.text}");
                     Navigator.of(context).pop(); // Close the alert dialog
                   },
                   child: Text(
@@ -2018,6 +2017,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pop(context);
               },
               child: Drawer_Widget(
+                  FontSize: 16,
                   title: "Live Map",
                   icon: Icon(Icons.podcasts_rounded, color: Colors.blueGrey))),
           if (Has_From_To)
@@ -2030,12 +2030,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     ));
               },
               child: Drawer_Widget(
-                  title: "$From to $To (Group)",
-                  icon: Icon(Icons.info, color: Colors.blueGrey)),
+                  FontSize: ((From.length + To.length > 13) ? 10.0 : 18.0),
+                  title: "$From To $To (Group)",
+                  icon: Icon(Icons.groups_3_outlined, color: Colors.blueGrey)),
             ),
           InkWell(
             onTap: () {},
             child: Drawer_Widget(
+                FontSize: 16,
                 title: "Pointer Message",
                 icon: Icon(Icons.person_pin_outlined, color: Colors.blueGrey)),
           ),
@@ -2048,6 +2050,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     ));
               },
               child: Drawer_Widget(
+                  FontSize: 16,
                   title: "Inbox",
                   icon: Icon(
                     Icons.message_outlined,
@@ -2055,15 +2058,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ))),
           InkWell(
             child: Drawer_Widget(
+                FontSize: 16,
                 title: "Terms and Condition",
                 icon: Icon(Icons.policy_outlined, color: Colors.blueGrey)),
           ),
           InkWell(
               child: Drawer_Widget(
+                  FontSize: 16,
                   title: "Privacy Policy",
                   icon: Icon(Icons.privacy_tip, color: Colors.blueGrey))),
           InkWell(
               child: Drawer_Widget(
+                  FontSize: 16,
                   title: "About",
                   icon: Icon(Icons.info, color: Colors.blueGrey))),
           InkWell(
@@ -2110,6 +2116,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               }
             },
             child: Drawer_Widget(
+              FontSize: 16,
               title: "Log Out",
               icon: Icon(
                 Icons.logout_outlined,
@@ -2433,8 +2440,13 @@ class ModernTikTokDrawer extends StatelessWidget {
 class Drawer_Widget extends StatelessWidget {
   var title;
   Icon icon;
+  double FontSize;
 
-  Drawer_Widget({super.key, required this.title, required this.icon});
+  Drawer_Widget(
+      {super.key,
+      required this.title,
+      required this.icon,
+      required this.FontSize});
 
   @override
   Widget build(BuildContext context) {
@@ -2458,7 +2470,7 @@ class Drawer_Widget extends StatelessWidget {
             title,
             style: TextStyle(
                 color: Colors.blueGrey,
-                fontSize: 16,
+                fontSize: FontSize,
                 fontFamily: "lemon",
                 fontWeight: FontWeight.w600),
           ),

@@ -366,15 +366,15 @@ class _DriverRidesState extends State<DriverRides> {
         _currentPosition!.longitude,
       );
 
-      _mapController.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target:
-                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            zoom: 12.0,
-          ),
-        ),
-      );
+      // _mapController.animateCamera(
+      //   CameraUpdate.newCameraPosition(
+      //     CameraPosition(
+      //       target:
+      //           LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+      //       zoom: 12.0,
+      //     ),
+      //   ),
+      // );
     } catch (e) {
       print('Error fetching location: $e');
     }
@@ -549,17 +549,11 @@ class _DriverRidesState extends State<DriverRides> {
 
     setState(() {
       // Remove the existing marker with the same MarkerId
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      for (int i = 0; i < 5; i++) {
+        _markers.removeWhere(
+            (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+      }
 
-      _markers.removeWhere(
-          (marker) => marker.markerId.value == '$Name $preliti $prelongi');
       _markers.add(
         Marker(
           markerId: MarkerId('$Name $liti $longi'),
@@ -799,7 +793,8 @@ class _DriverRidesState extends State<DriverRides> {
                     ),
                     zoom: 14.0,
                   ),
-                  myLocationEnabled: true, // Enable to show the user's location
+                  myLocationEnabled:
+                      false, // Enable to show the user's location
                   myLocationButtonEnabled: false, // Disable default button
                   onMapCreated: (GoogleMapController controller) {
                     _controller.complete(controller);
