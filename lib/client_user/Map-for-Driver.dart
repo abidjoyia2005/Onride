@@ -559,7 +559,7 @@ class _DriverRidesState extends State<DriverRides> {
           markerId: MarkerId('$Name $liti $longi'),
           position: LatLng(liti, longi), // Your desired position
           icon: BitmapDescriptor.fromBytes(markerIcon),
-          infoWindow: InfoWindow(onTap: () {}, snippet: Des, title: Name),
+          infoWindow: InfoWindow(onTap: () {}, snippet: "📍 $Des", title: Name),
         ),
       );
       preliti = liti;

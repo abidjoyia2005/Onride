@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/AuthService/Notification.dart';
+import 'package:flutter_application_1/chatsystem/EmptyBox.dart';
 import 'package:flutter_application_1/loading.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
 
@@ -215,12 +216,12 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
           )
         ]),
         actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () {
-              // Additional options can be added here
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.more_vert),
+          //   onPressed: () {
+          //     // Additional options can be added here
+          //   },
+          // ),
         ],
       ),
       body: Column(
@@ -241,6 +242,12 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
 
               final messages = snapshot.data!.docs.reversed
                   .toList(); // Reversing to display in chronological order
+
+              if (messages.isEmpty) {
+                return No_Data(
+                  Title: "No messages with ${widget.to_user_name}.",
+                );
+              }
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToBottom();
               });

@@ -433,23 +433,6 @@ class _UberMapState extends State<UberMap> {
     super.dispose();
   }
 
-  void GoOffline() async {
-    CollectionReference chatCollection =
-        FirebaseFirestore.instance.collection('User_Data');
-    String MakeId = '$User_Name $User_Id';
-
-    await chatCollection
-        .doc(MakeId)
-        .set({
-          'Offline': true,
-        })
-        .then((value) => () {
-              print("Username Added");
-            })
-        .catchError(
-            (error) => print("Failed to add user message count: $error"));
-  }
-
   // Method to fetch user location
   Future<void> _getCurrentLocation() async {
     print(
@@ -851,7 +834,7 @@ class _UberMapState extends State<UberMap> {
                       ),
                     ));
               },
-              snippet: Des,
+              snippet: "📍 $Des",
               title: '$Name'),
         ),
       );
@@ -1985,8 +1968,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                           height: 30,
                                           width: 30,
                                           decoration: BoxDecoration(
-                                            color: Colors
-                                                .blue, // You can change the color to fit your design
+                                            color: Colors.blue,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(

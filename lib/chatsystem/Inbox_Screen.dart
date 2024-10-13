@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
+import 'package:flutter_application_1/chatsystem/EmptyBox.dart';
 import 'package:flutter_application_1/chatsystem/GroupChat.dart';
 import 'package:flutter_application_1/chatsystem/Chat_Screen.dart';
 import 'package:flutter_application_1/loading.dart';
@@ -72,6 +73,11 @@ class _Inbox_ScreenState extends State<Inbox_Screen> {
           }
 
           final messages = snapshot.data?.docs ?? [];
+          if (messages.isEmpty && !Has_From_To) {
+            return No_Data(
+              Title: "Empty",
+            );
+          }
 
           return SingleChildScrollView(
             child: Column(
