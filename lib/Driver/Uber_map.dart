@@ -978,7 +978,7 @@ class _UberMapState extends State<UberMap> {
           ),
           Positioned(
             right: 12,
-            top: 60,
+            top: 20,
             child: InkWell(
               onTap: () {
                 if (Has_Driver_Acount) {
@@ -1012,10 +1012,10 @@ class _UberMapState extends State<UberMap> {
                 }
               },
               child: Container(
-                height: 40,
-                width: 40,
+                height: 45,
+                width: 45,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white38,
                   borderRadius: BorderRadius.all(Radius.circular(5)),
                   boxShadow: [
                     BoxShadow(
@@ -1032,14 +1032,14 @@ class _UberMapState extends State<UberMap> {
           ),
           Positioned(
             right: 12,
-            top: 110,
+            top: 70,
             child: InkWell(
               onTap: () {
                 showAlertDialog(context);
               },
               child: Container(
-                height: 40,
-                width: 40,
+                height: 45,
+                width: 45,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -1058,7 +1058,7 @@ class _UberMapState extends State<UberMap> {
           ),
           Positioned(
             right: 12,
-            top: 160,
+            top: 120,
             child: InkWell(
               onTap: () {
                 Navigator.push(
@@ -1068,8 +1068,8 @@ class _UberMapState extends State<UberMap> {
                     ));
               },
               child: Container(
-                height: 40,
-                width: 40,
+                height: 45,
+                width: 45,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(5)),

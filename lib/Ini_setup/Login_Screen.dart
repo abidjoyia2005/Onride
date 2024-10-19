@@ -401,11 +401,8 @@ class _LoginScreen extends State<LoginScreen> {
                     height: 13,
                   ),
 
-                  /// Phone number login option
                   InkWell(
-                    onTap: () {
-                      // Navigate to phone number login screen
-                    },
+                    onTap: () {},
                     child: Container(
                       alignment: Alignment.center,
                       padding: EdgeInsets.all(12),

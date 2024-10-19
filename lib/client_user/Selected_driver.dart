@@ -529,10 +529,13 @@ class _WhichLocationState extends State<WhichLocation> {
                               prefs.setBool("Has_From_To", true);
                               prefs.setString(
                                 "To",
-                                _endPlaceController.text,
+                                _endPlaceController.text.trim().toLowerCase(),
                               );
                               prefs.setString(
-                                  "From", _startPlaceController.text);
+                                  "From",
+                                  _startPlaceController.text
+                                      .trim()
+                                      .toLowerCase());
                               Has_From_To = true;
                               To = _endPlaceController.text;
                               From = _startPlaceController.text;
@@ -544,7 +547,7 @@ class _WhichLocationState extends State<WhichLocation> {
                                 MaterialPageRoute(
                                     builder: (context) => DriverRides(
                                           descrip:
-                                              "Go from $From at ${_selectedDate.toString()}",
+                                              "Go from $From at ${_getFormattedDateTime()}",
                                         )),
                               );
                             } else {

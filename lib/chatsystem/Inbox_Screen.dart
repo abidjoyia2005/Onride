@@ -296,10 +296,15 @@ class Inbox_Screen_Card extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(width: 8),
-            CircleAvatar(
-              radius: 28,
-              backgroundImage: NetworkImage(to_profile_pic),
-            ),
+            to_profile_pic != null
+                ? CircleAvatar(
+                    radius: 28,
+                    backgroundImage: NetworkImage(to_profile_pic),
+                  )
+                : CircleAvatar(
+                    radius: 28,
+                    backgroundImage: AssetImage("Assets/Images/No_Dp.jpeg"),
+                  ),
             SizedBox(width: 14),
             Expanded(
               child: Column(

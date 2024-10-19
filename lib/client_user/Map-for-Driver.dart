@@ -490,7 +490,7 @@ class _DriverRidesState extends State<DriverRides> {
         // });
         print("Second deferance is ${difference} for  ${userDoc['username']}");
 
-        if (difference.inSeconds < 20) {
+        if (difference.inSeconds < 25) {
           print("User name is ${userDoc['username']}");
 
           setState(() {
@@ -550,13 +550,13 @@ class _DriverRidesState extends State<DriverRides> {
     setState(() {
       // Remove the existing marker with the same MarkerId
       for (int i = 0; i < 5; i++) {
-        _markers.removeWhere(
-            (marker) => marker.markerId.value == '$Name $preliti $prelongi');
+        _markers
+            .removeWhere((marker) => marker.markerId.value == '$Name $image');
       }
 
       _markers.add(
         Marker(
-          markerId: MarkerId('$Name $liti $longi'),
+          markerId: MarkerId('$Name $image'),
           position: LatLng(liti, longi), // Your desired position
           icon: BitmapDescriptor.fromBytes(markerIcon),
           infoWindow: InfoWindow(onTap: () {}, snippet: "📍 $Des", title: Name),
@@ -631,7 +631,7 @@ class _DriverRidesState extends State<DriverRides> {
     var nowtime = DateTime.now();
     DateTime parsedTime = DateTime.parse(Time);
     Duration difference = nowtime.difference(parsedTime);
-    if (difference.inSeconds < 15) {
+    if (difference.inSeconds < 25) {
       return true;
     } else {
       return false;

@@ -13,7 +13,7 @@ class Chat_Screen_Inbox extends StatefulWidget {
   var to_user_id;
   Chat_Screen_Inbox(
       {required this.to_user_id,
-      required this.to_profilepic,
+      this.to_profilepic,
       required this.to_user_name});
   @override
   _Chat_Screen_InboxState createState() => _Chat_Screen_InboxState();
@@ -26,9 +26,11 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
   User? currentUser;
   String? userEmail;
   String? userProfilePicUrl;
-  int? unreadCount = 0;
+  int? unreadCount;
 
   void getUnredmessage() {
+    unreadCount = 0;
+    setState(() {});
     _firestore
         .collection('Inbox')
         .doc(User_Id) // Use the passed value
@@ -121,6 +123,9 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
         'profilePicUrl': userProfilePicUrl ?? 'default_profile_pic_url',
         'timestamp': FieldValue.serverTimestamp(),
       });
+      setState(() {
+        unreadCount = unreadCount! + 1;
+      });
 
       _scrollToBottom();
     }
@@ -201,12 +206,16 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
           SizedBox(
             width: 5,
           ),
-          InkWell(
-            onTap: () {},
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(widget.to_profilepic),
-            ),
-          ),
+          widget.to_profilepic != null
+              ? InkWell(
+                  onTap: () {},
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(widget.to_profilepic),
+                  ),
+                )
+              : CircleAvatar(
+                  backgroundImage: AssetImage("Assets/Images/No_Dp.jpeg"),
+                ),
           SizedBox(
             width: 7,
           ),
@@ -263,7 +272,7 @@ class _Chat_Screen_InboxState extends State<Chat_Screen_Inbox> {
                   final time = timestamp != null
                       ? DateFormat('dd/MM/yyyy      hh:mm a')
                           .format(timestamp.toDate())
-                      : 'N/A';
+                      : '🕖';
 
                   return isCurrentUser
                       ? SentMessageBubble(

@@ -140,8 +140,8 @@ class _FromtoPageState extends State<FromtoPage> {
                       setState(() {});
                       SharedPreferences prefs =
                           await SharedPreferences.getInstance();
-                      prefs.setString("From", _startPlace.text);
-                      prefs.setString("To", _endPlace.text);
+                      prefs.setString("From", _startPlace.text.trim().toLowerCase());
+                      prefs.setString("To", _endPlace.text.trim().toLowerCase());
                       prefs.setBool("Has_From_To", true);
                       Has_From_To = true;
 

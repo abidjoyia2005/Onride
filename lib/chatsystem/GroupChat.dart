@@ -5,7 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/AuthService/Email_Auth.dart';
 import 'package:flutter_application_1/AuthService/Notification.dart';
-import 'package:intl/intl.dart'; // For formatting timestamps
+import 'package:intl/intl.dart';
+import 'package:showcaseview/showcaseview.dart'; // For formatting timestamps
 
 class GroupFromTo extends StatefulWidget {
   final String hasFromTo; // Pass Has_From_To as a parameter
@@ -292,10 +293,10 @@ class _GroupFromToState extends State<GroupFromTo> {
                     final timestamp = message['timestamp'] as Timestamp?;
                     final time = timestamp != null
                         ? DateFormat('hh:mm a').format(timestamp.toDate())
-                        : 'N/A';
+                        : '🕖';
                     final date = timestamp != null
                         ? DateFormat('dd/MM/yyyy').format(timestamp.toDate())
-                        : 'N/A'; // Format date and time
+                        : '🕖'; // Format date and time
 
                     if (isCurrentUser) {
                       // Sent message by the current user
@@ -313,7 +314,7 @@ class _GroupFromToState extends State<GroupFromTo> {
                         time: time,
                         date: date,
                         sender: message['sender'],
-                        profilePicUrl: message['profilePicUrl'],
+                        profilePicUrl: message['profilePicUrl'] ?? null,
                       );
                     }
                   },
@@ -427,9 +428,13 @@ class SentMessageBubble extends StatelessWidget {
               ),
             ),
             SizedBox(width: 8),
-            CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider(profilePicUrl),
-            ),
+            profilePicUrl != "default_profile_pic_url"
+                ? CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(profilePicUrl),
+                  )
+                : CircleAvatar(
+                    backgroundImage: AssetImage("Assets/Images/No_Dp.jpeg"),
+                  ),
           ],
         ),
       ),
@@ -442,9 +447,9 @@ class ReceivedMessageBubble extends StatelessWidget {
   final String time;
   final String date;
   final String sender;
-  final String profilePicUrl;
+  String profilePicUrl;
 
-  const ReceivedMessageBubble({
+  ReceivedMessageBubble({
     required this.message,
     required this.time,
     required this.date,
@@ -462,9 +467,13 @@ class ReceivedMessageBubble extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider(profilePicUrl),
-            ),
+            profilePicUrl != null
+                ? CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(profilePicUrl),
+                  )
+                : CircleAvatar(
+                    backgroundImage: AssetImage("Assets/Images/No_Dp.jpeg"),
+                  ),
             SizedBox(width: 8),
             Expanded(
               child: Column(
