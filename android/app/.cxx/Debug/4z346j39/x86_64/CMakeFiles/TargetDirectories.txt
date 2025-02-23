@@ -1,0 +1,2 @@
+E:/LiveTicket/Live_Ticket 3/flutter_application_1/android/app/.cxx/Debug/4z346j39/x86_64/CMakeFiles/edit_cache.dir
+E:/LiveTicket/Live_Ticket 3/flutter_application_1/android/app/.cxx/Debug/4z346j39/x86_64/CMakeFiles/rebuild_cache.dir
